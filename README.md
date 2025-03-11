@@ -12,5 +12,6 @@
 
 ---
 
-> - Wintoast来自：https://github.com/mohabouje/WinToast
-> - 自动编译Actions来自：https://github.com/gvillanueva/hello-cmake-qt-github_action
+> - Wintoast来自：[mohabouje/WinToast](https://github.com/mohabouje/WinToast)
+> - 自动编译Actions来自：[gvillanueva/hello-cmake-qt-github_action](https://github.com/gvillanueva/hello-cmake-qt-github_action)
+> - 图标来自：[microsoft/fluentui-emoji](https://github.com/microsoft/fluentui-emoji)
