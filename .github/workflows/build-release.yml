@@ -42,4 +42,4 @@ jobs:
       uses: actions/upload-artifact@v4.4.0
       with:
           name: ${{github.sha}}
-          path: ${{github.workspace}}/build/*.exe
+          path: ${{github.workspace}}/build/${{env.BUILD_TYPE}}/*.exe
