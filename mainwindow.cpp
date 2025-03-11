@@ -326,8 +326,6 @@ void MainWindow::on_tracks_list_clicked(const QModelIndex &index) {
         ui->track_id->setItemDelegateForColumn(0, delegate);
     }
     id_model->setFamily(&DataBase::tracks[track_uuid].ids, track_uuid);
-
-    connect(ui->copy_meta, &QPushButton::clicked, this, &MainWindow::copyXML);
 }
 
 void MainWindow::on_artists_list_customContextMenuRequested(const QPoint &pos) {
@@ -1189,16 +1187,18 @@ void MainWindow::setTracks(const QString &uuid) {
     }
 }
 
-void MainWindow::copyXML() {
+void MainWindow::on_copy_meta_clicked() {
     const auto *track_model = qobject_cast<TrackModel*>(ui->tracks_list->model());
-    auto selected = ui->tracks_list->selectionModel()->selectedRows();
-    auto track_uuid = track_model->getTrackByRow(selected.first().row());
-    auto &track = DataBase::tracks[track_uuid];
-    auto xml = track.toXML().join("");
-    QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(xml);
-    // showWinToast();
-    showToast(track.getName());
+    if (track_model && track_model->isActive()) {
+        auto selected = ui->tracks_list->selectionModel()->selectedRows();
+        auto track_uuid = track_model->getTrackByRow(selected.first().row());
+        auto &track = DataBase::tracks[track_uuid];
+        auto xml = track.toXML().join("");
+        QClipboard *clipboard = QApplication::clipboard();
+        clipboard->setText(xml);
+        // showWinToast();
+        showToast(track.getName());
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {

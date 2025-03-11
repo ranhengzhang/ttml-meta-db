@@ -9,9 +9,9 @@
 ## 反馈
 
 在 [Issue](../../issues) 页面发起提交，提交前请查看是否有重复问题。
+也可以在 [Notion](https://unique-utensil-db5.notion.site/TTML-META-DB-1b3e6971f2cc8042b76be177ba5e1f5c) 查看当前维护进程。
 
 ---
 
 > - Wintoast来自：[mohabouje/WinToast](https://github.com/mohabouje/WinToast)
-> - 自动编译Actions来自：[gvillanueva/hello-cmake-qt-github_action](https://github.com/gvillanueva/hello-cmake-qt-github_action)
 > - 图标来自：[microsoft/fluentui-emoji](https://github.com/microsoft/fluentui-emoji)

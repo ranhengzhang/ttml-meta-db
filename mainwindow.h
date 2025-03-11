@@ -102,7 +102,7 @@ private slots:
 
     void setTracks(const QString& uuid);
 
-    void copyXML();
+    void on_copy_meta_clicked();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
