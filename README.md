@@ -4,7 +4,7 @@
 
 ## 使用
 
-前往 [Release](../../releases) 页面下载最新发布版本，直接运行。
+前往 [Release](../../releases) 页面或 [Actions](../../releases) 页面下载最新发布版本，直接运行。
 
 ## 反馈
 
