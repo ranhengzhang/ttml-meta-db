@@ -12,23 +12,23 @@ Q_OBJECT
 public:
     explicit IDModel(QObject *parent = nullptr);
 
-    int rowCount(const QModelIndex &parent) const override;
+    [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
 
-    int columnCount(const QModelIndex &parent) const override;
+    [[nodiscard]] int columnCount(const QModelIndex &parent) const override;
 
-    QVariant data(const QModelIndex &index, int role) const override;
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
 
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
     bool addData(QString key, QString value);
 
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
 
     bool insertRows(int row, int count, const QModelIndex &parent) override;
 
     bool removeRows(int row, int count, const QModelIndex &parent) override;
 
-    bool isActive();
+    [[nodiscard]] bool isActive() const;
 
     void setFamily(QList<QList<QString>> *list, const QString& uuid);
 
@@ -37,6 +37,8 @@ public:
     static QStringList options();
 
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+
+    [[nodiscard]] static QString analyseId(QString key, QString value, bool *ok);
 
 private:
     QList<QList<QString>> *ids{};

@@ -1121,6 +1121,11 @@ void MainWindow::onAddID() {
     if (dialog.exec() == QDialog::Accepted) {
         auto key = dialog.getSelectedOption();
         auto value = dialog.getInputText();
+        bool ok = false;
+        value = IDModel::analyseId(key, value, &ok);
+        if (!ok) {
+            QMessageBox::warning(this, "错误", "ID格式或程序错误！");
+        }
 
         auto *model = qobject_cast<IDModel*>(ui->track_id->model());
         if (!model->addData(key, value)) {
