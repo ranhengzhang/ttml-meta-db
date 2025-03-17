@@ -24,6 +24,9 @@ QVariant AlbumModel::data(const QModelIndex &index, int role) const {
         return {};
 
     const QString uuid = albums.at(index.row());
+    if (!DataBase::albums.contains(uuid)) {
+        return {};
+    }
     const Album &album = DataBase::albums[uuid];
 
     if (role == Qt::DisplayRole)
@@ -100,8 +103,10 @@ bool AlbumModel::removeAlbumFromArtist(const int row) {
     beginRemoveRows(QModelIndex(), row, row);
 
     // 从当前歌手中移除专辑
+    auto &artist = DataBase::artists[artist_uuid];
     const QString album_uuid = albums.at(row);
     auto &album = DataBase::albums[album_uuid];
+    artist.albums.removeAll(album_uuid);
     album.removeFromArtist(artist_uuid);
     endRemoveRows();
 
@@ -114,9 +119,14 @@ bool AlbumModel::removeAlbumFromArtist(const int row) {
  */
 void AlbumModel::setArtist(const QString& uuid) {
     artist_uuid = uuid;
-    const auto &artist = DataBase::artists[uuid];
+    auto &artist = DataBase::artists[uuid];
 
     // 将歌手的专辑添加到显示中
+    for (auto &album_uuid: artist.albums) {
+        if (!DataBase::albums.contains(album_uuid)) {
+            artist.albums.removeAll(album_uuid);
+        }
+    }
     albums = artist.albums;
 
     refreshAll();
