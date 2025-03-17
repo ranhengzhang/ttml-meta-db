@@ -159,7 +159,7 @@ QString IDModel::analyseId(QString key, QString value, bool *ok) {
         QRegularExpression primary(R"(^[0-9a-zA-Z]+$)");
         auto legal = primary.match(value);
         if (!legal.hasMatch()) {
-            QRegularExpression extract(R"((?<=track/)[0-9]+)");
+            QRegularExpression extract(R"((?<=track/)[0-9a-zA-Z]+)");
             auto match = extract.match(value);
             if (!match.hasMatch()) {
                 *ok = false;
