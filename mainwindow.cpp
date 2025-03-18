@@ -872,20 +872,20 @@ void MainWindow::onAddNewTrack() {
 }
 
 void MainWindow::onAddOldTrack() {
-    auto tracks = DataBase::tracks.keys();
+    auto selected = ui->artists_list->selectionModel()->selectedIndexes();
+    const auto artist_uuid = artist_list_model->getArtistByRow(selected.first().row());
+    auto &artist = DataBase::artists[artist_uuid];
     QSet<QString> messages{};
-    for (auto &track_uuid: tracks) {
-        auto &track = DataBase::tracks[track_uuid];
-        QStringList artistNames{};
-        for (auto &album_uuid: track.albums) {
-            auto &album = DataBase::albums[album_uuid];
-            for (auto &artist_uuid: album.artists) {
-                auto &artist = DataBase::artists[artist_uuid];
-                if (!artistNames.contains(artist.getName()))
-                    artistNames.append(artist.getName());
-            }
+    for (auto &album_uuid: artist.albums) {
+        auto &album = DataBase::albums[album_uuid];
+        for (auto &track_uuid: album.tracks) {
+            auto &track = DataBase::tracks[track_uuid];
+            messages.insert(QString("%1 - %2 [%3]").arg(track.getName()).arg(artist.metas.join('/')).arg(track_uuid));
         }
-        messages.insert(QString("%1 - %2 [%3]").arg(track.getName()).arg(artistNames.join('/')).arg(track_uuid));
+    }
+    if (messages.isEmpty()) {
+        QMessageBox::information(this, "提示", "没有可添加单曲！");
+        return;
     }
 
     QStringList messagesList{messages.begin(), messages.end()};
