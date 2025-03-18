@@ -1019,10 +1019,7 @@ void MainWindow::onDeleteTrackFromAlbum() {
         // 获取模型并删除数据
         const int row = selected.first().row(); // 获取行号
         track_album_model->removeData(row);
-        auto *track_mdoel = qobject_cast<TrackModel*>(ui->tracks_list);
-        if (track_mdoel) {
-            track_mdoel->refreshAll();
-        }
+        track_list_model->refreshAll();
     }
 }
 
