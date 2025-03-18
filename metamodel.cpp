@@ -52,6 +52,9 @@ bool MetaModel::addData(const QString &name) {
 }
 
 bool MetaModel::setData(const QModelIndex &index, const QVariant &value, const int role) {
+    const auto meta = entity->metas.at(index.row());
+    if (value == meta) return true;
+
     // 查重
     if (entity->metas.contains(value.toString())) {
         QMessageBox::critical(view, "失败", "重复的歌手名");
