@@ -67,7 +67,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->track_id->setModel(id_model);
 
     timer = new QTimer(this);
-    timer->setInterval(60000);
+    timer->setInterval(300000);
+    timer->setSingleShot(true);
     connect(timer, &QTimer::timeout, this, [this]() {
         if (!filePath.isEmpty()) {
             saveFile();
@@ -1156,6 +1157,11 @@ void MainWindow::showToast(const QString &name) {
 }
 
 void MainWindow::saveFile() const {
+    if (timer->isActive()) {
+        timer->stop();
+    }
+    timer->start();
+
     // 打开文件保存压缩数据
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly)) {
