@@ -34,9 +34,9 @@ public:
 
     bool isActive() const;
 private:
-    DataEntity *entity;
+    DataEntity *entity{};
 
-    QWidget *view;
+    QWidget *view{};
 };
 
 

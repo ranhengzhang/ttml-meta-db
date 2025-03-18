@@ -148,3 +148,7 @@ void AlbumModel::clean() {
     albums = {};
     refreshAll();
 }
+
+QString AlbumModel::getArtist() const {
+    return artist_uuid;
+}

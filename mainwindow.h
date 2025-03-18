@@ -2,11 +2,16 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QJsonObject>
 
-#include "artist.h"
-#include "album.h"
+#include "AlbumArtistModel.h"
+#include "albummodel.h"
+#include "artistmodel.h"
+#include "idmodel.h"
+#include "metamodel.h"
 #include "track.h"
+#include "trackalbummodel.h"
+#include "trackfeatmodel.h"
+#include "trackmodel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -30,9 +35,11 @@ private slots:
 
     void on_actionSaveAs_triggered();
 
-    void on_artists_list_clicked(const QModelIndex &index);
+    void on_tabWidget_currentChanged(int index) const;
 
-    void on_albums_list_clicked(const QModelIndex &index);
+    void on_artists_list_clicked(const QModelIndex &index) const;
+
+    void on_albums_list_clicked(const QModelIndex &index) const;
 
     void on_tracks_list_clicked(const QModelIndex &index);
 
@@ -98,10 +105,6 @@ private slots:
 
     void onAddID();
 
-    void setAlbums(const QString& uuid);
-
-    void setTracks(const QString& uuid);
-
     void on_copy_meta_clicked();
 
 protected:
@@ -122,5 +125,25 @@ private:
     int pendingRow = -1;
 
     QTimer *timer{};
+
+    ArtistModel* artist_list_model{};
+
+    AlbumModel* album_list_model{};
+
+    TrackModel* track_list_model{};
+
+    MetaModel* artist_meta_model{};
+
+    MetaModel* album_meta_model{};
+
+    MetaModel* track_meta_model{};
+
+    AlbumArtistModel* album_artist_model{};
+
+    TrackAlbumModel* track_album_model{};
+
+    TrackFeatModel* track_feat_model{};
+
+    IDModel* id_model{};
 };
 #endif // MAINWINDOW_H

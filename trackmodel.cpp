@@ -117,3 +117,7 @@ void TrackModel::refreshAll() {
     tracks = DataBase::albums.contains(album_uuid) ? DataBase::albums[album_uuid].tracks : QList<QString>{};
     endResetModel();   // 通知视图数据重置完成
 }
+
+QString TrackModel::getAlbum() {
+    return album_uuid;
+}

@@ -33,6 +33,8 @@ public:
 
     void clean();
 
+    [[nodiscard]]QString getArtist() const;
+
 private:
     QString artist_uuid;
 

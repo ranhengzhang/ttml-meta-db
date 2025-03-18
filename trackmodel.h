@@ -32,6 +32,8 @@ public:
 
     void refreshAll();
 
+    [[nodiscard]]QString getAlbum();
+
 private:
     QString album_uuid;
 

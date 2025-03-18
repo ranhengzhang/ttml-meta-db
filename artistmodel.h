@@ -23,13 +23,13 @@ public:
 
     bool removeArtist(int row);
 
-    QString getArtistByRow(int row) const;
+    [[nodiscard]] QString getArtistByRow(int row) const;
 
     void refreshAll();
 private:
-    QList<QString> artists;
+    QList<QString> artists{};
 
-    QWidget *view;
+    QWidget *view{};
 };
 
 
