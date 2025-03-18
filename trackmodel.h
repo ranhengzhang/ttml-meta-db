@@ -12,23 +12,23 @@ Q_OBJECT
 public:
     explicit TrackModel(QObject *parent = nullptr);
 
-    int rowCount(const QModelIndex &parent) const override;
+    [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
 
-    QVariant data(const QModelIndex &index, int role) const override;
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
 
     void setAlbum(const QString &uuid);
 
-    bool addNewData(QString name);
+    bool addNewData(const QString& name);
 
     bool addOldData(const QString& uuid);
 
     bool removeTrackFromAlbum(int row);
 
-    QString getTrackByRow(int row) const;
+    [[nodiscard]] QString getTrackByRow(int row) const;
 
     void clean();
 
-    bool isActive() const;
+    [[nodiscard]] bool isActive() const;
 
     void refreshAll();
 

@@ -16,9 +16,9 @@ public:
 
     void setEntity(DataEntity *node);
 
-    int rowCount(const QModelIndex &parent) const override;
+    [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
 
-    QVariant data(const QModelIndex &index, int role) const override;
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
 
     [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
 
@@ -30,9 +30,8 @@ public:
 
     void clean();
 
-    void refreshAll();
+    [[nodiscard]] bool isActive() const;
 
-    bool isActive() const;
 private:
     DataEntity *entity{};
 

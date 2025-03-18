@@ -85,7 +85,7 @@ bool ArtistModel::removeArtist(const int row) {
 /**
  * 获取 model 中选中的歌手 UUID
  * @param row 选中歌手在 model 中的行号
- * @return 获取歌手的引用
+ * @return 歌手的 UUID
  */
 QString ArtistModel::getArtistByRow(const int row) const {
     Q_ASSERT(row >= 0 && row < artists.size());

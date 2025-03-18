@@ -21,15 +21,15 @@ public:
 
     bool addNewData(const QString& name);
 
-    bool addOldData(const QString &uuid);
+    bool addOldData(const QString &album_uuid);
 
     bool removeAlbumFromArtist(int row);
 
-    void setArtist(const QString& uuid);
+    void setArtist(const QString& artist_uuid);
 
     void refreshAll();
 
-    QString getAlbumByRow(int row) const;
+    [[nodiscard]] QString getAlbumByRow(int row) const;
 
     void clean();
 

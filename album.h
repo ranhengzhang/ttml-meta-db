@@ -10,13 +10,16 @@
 class Album final :public DataEntity{
 public:
     Album();
+
     explicit Album(QJsonObject json);
 
     QList<QString> artists{};
+
     QList<QString> tracks{};
 
     [[nodiscard]]QList<QString> toXML() const override;
-    void removeFromArtist(const QString& uuid);
+
+    void removeFromArtist(const QString& artist_uuid);
 
     [[nodiscard]] QJsonObject getSelf() override;
 };

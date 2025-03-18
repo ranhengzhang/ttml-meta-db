@@ -75,8 +75,12 @@ QList<QString> Track::toXML() const {
     return metas;
 }
 
-void Track::removeFromAlbum(const QString& uuid) {
-    albums.removeAll(uuid);
+/**
+ * 从当前专辑删除单曲
+ * @param album_uuid 专辑 UUID
+ */
+void Track::removeFromAlbum(const QString& album_uuid) {
+    albums.removeAll(album_uuid);
     if (albums.isEmpty())
         DataBase::tracks.remove(UUID);
 }

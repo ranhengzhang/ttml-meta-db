@@ -17,7 +17,7 @@ int AlbumArtistModel::rowCount(const QModelIndex &parent) const {
     return artists ? artists->size() : 0;
 }
 
-QVariant AlbumArtistModel::data(const QModelIndex &index, int role) const {
+QVariant AlbumArtistModel::data(const QModelIndex &index, const int role) const {
     if (!artists || !index.isValid() || index.row() >= artists->size())
         return {};
 
@@ -30,27 +30,37 @@ QVariant AlbumArtistModel::data(const QModelIndex &index, int role) const {
     return {};
 }
 
-bool AlbumArtistModel::addData(const QString& uuid) {
-    if (DataBase::artists.contains(uuid)) {
-        auto &artist = DataBase::artists[uuid];
+/**
+ * 添加当前专辑到歌手
+ * @param artist_uuid 目标歌手的 UUID
+ * @return 添加成功/失败
+ */
+bool AlbumArtistModel::addData(const QString& artist_uuid) {
+    if (DataBase::artists.contains(artist_uuid)) {
+        auto &artist = DataBase::artists[artist_uuid];
         if (artist.albums.contains(album_uuid)) {
             return false;
         }
+
         beginInsertRows(QModelIndex(), artists->size(), artists->size());
         artist.albums.append(album_uuid);
-        artists->append(uuid);
+        artists->append(artist_uuid);
         endInsertRows();
         return true;
     }
     return false;
 }
 
+/**
+ * 从选中歌手中删除专辑
+ * @param row 选中歌手的行号
+ * @return 删除成功/失败
+ */
 bool AlbumArtistModel::removeData(const int row) {
     if (row < 0 || row >= artists->size())
         return false;
 
     beginRemoveRows(QModelIndex(), row, row);
-
     // 从选中歌手中移除专辑
     const QString artist_uuid = artists->at(row);
     auto &artist = DataBase::artists[artist_uuid];
@@ -61,24 +71,32 @@ bool AlbumArtistModel::removeData(const int row) {
     return true;
 }
 
-void AlbumArtistModel::setFamily(QList<QString> *list, const QString& uuid) {
-    artists = list;
+/**
+ * 设置当前专辑的 UUID 和歌手列表
+ * @param album_artist_list 当前专辑的歌手列表
+ * @param uuid 当前专辑的 UUID
+ */
+void AlbumArtistModel::setFamily(QList<QString> *album_artist_list, const QString& uuid) {
+    beginResetModel();
+    artists = album_artist_list;
     album_uuid = uuid;
-
-    refreshAll();
+    endResetModel();
 }
 
+/**
+ * 清除当前专辑信息
+ */
 void AlbumArtistModel::clean() {
+    beginResetModel();
     artists = nullptr;
     album_uuid = {};
-    refreshAll();
+    endResetModel();
 }
 
+/**
+ * 当前 Model 是否有数据
+ * @return 有/无数据
+ */
 bool AlbumArtistModel::isActive() const {
     return artists != nullptr;
-}
-
-void AlbumArtistModel::refreshAll() {
-    beginResetModel(); // 通知视图数据即将全部重置
-    endResetModel();   // 通知视图数据重置完成
 }

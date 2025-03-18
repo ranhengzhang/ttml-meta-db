@@ -14,27 +14,26 @@ Q_OBJECT
 public:
     explicit AlbumArtistModel(QObject *parent = nullptr);
 
-    int rowCount(const QModelIndex &parent) const override;
+    [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
 
-    QVariant data(const QModelIndex &index, int role) const override;
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
 
-    bool addData(const QString& uuid);
+    bool addData(const QString& artist_uuid);
 
     bool removeData(int row);
 
-    void setFamily(QList<QString> *list, const QString& uuid);
+    void setFamily(QList<QString> *album_artist_list, const QString& uuid);
 
     void clean();
 
-    bool isActive() const;
+    [[nodiscard]] bool isActive() const;
+
 private:
     QList<QString> *artists{};
 
     QString album_uuid;
 
     QWidget *view{};
-
-    void refreshAll();
 };
 
 

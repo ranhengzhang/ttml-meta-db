@@ -14,20 +14,24 @@ Album::Album() {
 }
 
 Album::Album(QJsonObject json): DataEntity(json) {
+    // 添加专辑对应的歌手
     if (json.contains("artists") && json["artists"].isArray()) {
-        auto artistsList = json["artists"].toArray();
-        for (auto artist:artistsList) {
+        auto artist_list = json["artists"].toArray();
+        for (auto artist:artist_list) {
             artists.append(artist.toString());
         }
     } else {
+        // 没有歌手
         self["artists"] = QJsonArray();
     }
+    // 添加专辑包含的单曲
     if (json.contains("tracks") && json["tracks"].isArray()) {
-        auto trackList = json["tracks"].toArray();
-        for (auto track:trackList) {
+        auto track_list = json["tracks"].toArray();
+        for (auto track:track_list) {
             tracks.append(track.toString());
         }
     } else {
+        // 没有单曲
         self["tracks"] = QJsonArray();
     }
 }
@@ -49,12 +53,12 @@ QList<QString> Album::toXML() const {
 }
 
 /**
- * 从歌手中删除专辑
+ * 删除专辑中的对应歌手
  * 如果专辑悬空则销毁
- * @param uuid 歌手 UUID
+ * @param artist_uuid 歌手 UUID
  */
-void Album::removeFromArtist(const QString& uuid) {
-    artists.removeAll(uuid);
+void Album::removeFromArtist(const QString& artist_uuid) {
+    artists.removeAll(artist_uuid);
 
     // 销毁没有歌手的专辑
     if (artists.isEmpty()) {

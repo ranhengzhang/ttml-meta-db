@@ -11,8 +11,9 @@ MetaModel::MetaModel(QObject *parent): QAbstractListModel(parent) {
 }
 
 void MetaModel::setEntity(DataEntity *node) {
+    beginResetModel();
     entity = node;
-    refreshAll();
+    endResetModel();
 }
 
 int MetaModel::rowCount(const QModelIndex &parent) const {
@@ -85,13 +86,9 @@ bool MetaModel::removeMeta(const int row) {
 }
 
 void MetaModel::clean() {
+    beginResetModel();
     entity = nullptr;
-    refreshAll();
-}
-
-void MetaModel::refreshAll() {
-    beginResetModel(); // 通知视图数据即将全部重置
-    endResetModel();   // 通知视图数据重置完成
+    endResetModel();
 }
 
 bool MetaModel::isActive() const {

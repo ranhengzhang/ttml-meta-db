@@ -7,14 +7,16 @@
 
 #include <QStyledItemDelegate>
 
-class IDDelegate: public QStyledItemDelegate {
+class IDDelegate final : public QStyledItemDelegate {
 Q_OBJECT
 public:
-    IDDelegate(const QStringList &options, QObject *parent = nullptr);
+    explicit IDDelegate(const QStringList &options, QObject *parent = nullptr);
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                           const QModelIndex &index) const override;
+
     void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+
     void setModelData(QWidget *editor, QAbstractItemModel *model,
                      const QModelIndex &index) const override;
 

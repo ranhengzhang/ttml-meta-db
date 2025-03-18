@@ -59,24 +59,25 @@ bool TrackFeatModel::removeData(int row) {
     return true;
 }
 
-void TrackFeatModel::setFamily(QList<QString> *list, const QString &uuid) {
-    feats = list;
-    track_uuid = uuid;
-
-    refreshAll();
+/**
+ * 设置当前单曲的 FEAT 和 UUID
+ * @param feat_list FEAT UUID 列表
+ * @param track_uuid 单曲的 UUID
+ */
+void TrackFeatModel::setFamily(QList<QString> *feat_list, const QString &track_uuid) {
+    beginResetModel();
+    feats = feat_list;
+    this->track_uuid = track_uuid;
+    endResetModel();
 }
 
 void TrackFeatModel::clean() {
+    beginResetModel();
     feats = nullptr;
     track_uuid = {};
-    refreshAll();
+    endResetModel();
 }
 
-bool TrackFeatModel::isActive() {
+bool TrackFeatModel::isActive() const {
     return feats != nullptr;
-}
-
-void TrackFeatModel::refreshAll() {
-    beginResetModel(); // 通知视图数据即将全部重置
-    endResetModel();   // 通知视图数据重置完成
 }

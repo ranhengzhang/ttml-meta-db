@@ -20,7 +20,7 @@ public:
 
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
-    bool addData(QString key, QString value);
+    bool addData(const QString& key, const QString& value);
 
     [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
 
@@ -30,15 +30,15 @@ public:
 
     [[nodiscard]] bool isActive() const;
 
-    void setFamily(QList<QList<QString>> *list, const QString& uuid);
+    void setFamily(QList<QList<QString>> *id_list, const QString& track_uuid);
 
     void clean();
 
     static QStringList options();
 
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
-    [[nodiscard]] static QString analyseId(QString key, QString value, bool *ok);
+    [[nodiscard]] static QString analyseId(const QString &key, QString value, bool *ok);
 
 private:
     QList<QList<QString>> *ids{};
@@ -48,8 +48,6 @@ private:
     static QStringList id_options;
 
     QWidget *view{};
-
-    void refreshAll();
 };
 
 

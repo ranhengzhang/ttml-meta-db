@@ -13,11 +13,12 @@ class IDDialog : public QDialog
 
 public:
     explicit IDDialog(QWidget *parent = nullptr);
-    ~IDDialog();
 
-    QString getSelectedOption() const;
+    ~IDDialog() override;
 
-    QString getInputText() const;
+    [[nodiscard]] QString getSelectedOption() const;
+
+    [[nodiscard]] QString getInputText() const;
 
 private:
     Ui::IDDialog *ui;

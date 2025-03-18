@@ -16,11 +16,14 @@ public:
     explicit Track(QJsonObject json);
 
     QList<QString> albums; // 专辑列表
+
     QList<QString> feats; // 合作艺人列表
+
     QList<QList<QString>> ids; // 歌曲ID列表
 
     [[nodiscard]] QList<QString> toXML() const override; // 导出xml
-    void removeFromAlbum(const QString& uuid);
+
+    void removeFromAlbum(const QString& album_uuid);
 
     [[nodiscard]] QJsonObject getSelf() override;
 };

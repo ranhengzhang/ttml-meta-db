@@ -41,7 +41,7 @@ private slots:
 
     void on_albums_list_clicked(const QModelIndex &index) const;
 
-    void on_tracks_list_clicked(const QModelIndex &index);
+    void on_tracks_list_clicked(const QModelIndex &index) const;
 
     void on_artists_list_customContextMenuRequested(const QPoint &pos);
 
@@ -114,7 +114,7 @@ private:
     Ui::MainWindow *ui;
     QString filePath{};
     static constexpr int HOTKEY_ID = 1;
-    HWND hWnd;
+    HWND hWnd{};
 
     void saveFile() const;
 

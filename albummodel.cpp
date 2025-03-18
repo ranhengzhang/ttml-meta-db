@@ -71,20 +71,21 @@ bool AlbumModel::addNewData(const QString &name) {
 
 /**
  * 将当前歌手添加到一张已有专辑中
- * @param uuid 已有专辑 UUID
+ * @param album_uuid 已有专辑 UUID
  * @return 添加成功/失败
  */
-bool AlbumModel::addOldData(const QString& uuid) {
-    if (DataBase::albums.contains(uuid)) {
+bool AlbumModel::addOldData(const QString& album_uuid) {
+    if (DataBase::albums.contains(album_uuid)) {
         auto &artist = DataBase::artists[artist_uuid];
-        auto &album = DataBase::albums[uuid];
-        if (artist.albums.contains(uuid)) {
+        if (artist.albums.contains(album_uuid)) {
             return false;
         }
+
         beginInsertRows(QModelIndex(), albums.size(), albums.size());
-        artist.albums.append(uuid);
+        auto &album = DataBase::albums[album_uuid];
+        artist.albums.append(album_uuid);
         album.artists.append(artist_uuid);
-        albums.append(uuid);
+        albums.append(album_uuid);
         endInsertRows();
         return true;
     }
@@ -101,7 +102,6 @@ bool AlbumModel::removeAlbumFromArtist(const int row) {
         return false;
 
     beginRemoveRows(QModelIndex(), row, row);
-
     // 从当前歌手中移除专辑
     auto &artist = DataBase::artists[artist_uuid];
     const QString album_uuid = albums.at(row);
@@ -115,21 +115,22 @@ bool AlbumModel::removeAlbumFromArtist(const int row) {
 
 /**
  * 设置当前的歌手并列出所有专辑
- * @param uuid 歌手 UUID
+ * @param artist_uuid 歌手 UUID
  */
-void AlbumModel::setArtist(const QString& uuid) {
-    artist_uuid = uuid;
-    auto &artist = DataBase::artists[uuid];
+void AlbumModel::setArtist(const QString& artist_uuid) {
+    beginResetModel();
+    this->artist_uuid = artist_uuid;
 
     // 将歌手的专辑添加到显示中
+    auto &artist = DataBase::artists[artist_uuid];
     for (auto &album_uuid: artist.albums) {
+        // 去除不存在的专辑
         if (!DataBase::albums.contains(album_uuid)) {
             artist.albums.removeAll(album_uuid);
         }
     }
     albums = artist.albums;
-
-    refreshAll();
+    endResetModel();
 }
 
 void AlbumModel::refreshAll() {
@@ -138,15 +139,21 @@ void AlbumModel::refreshAll() {
     endResetModel();   // 通知视图数据重置完成
 }
 
+/**
+ * 根据行号获取专辑 UUID
+ * @param row 选中专辑的行号
+ * @return 专辑的 UUID
+ */
 QString AlbumModel::getAlbumByRow(const int row) const {
     Q_ASSERT(row >= 0 && row < albums.size());
     return albums.at(row);
 }
 
 void AlbumModel::clean() {
+    beginResetModel();
     artist_uuid = {};
     albums = {};
-    refreshAll();
+    endResetModel();
 }
 
 QString AlbumModel::getArtist() const {

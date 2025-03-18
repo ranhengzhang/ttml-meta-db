@@ -31,6 +31,7 @@ QVariant TrackModel::data(const QModelIndex &index, int role) const {
 }
 
 void TrackModel::setAlbum(const QString &uuid) {
+    beginResetModel();
     album_uuid = uuid;
     const auto &album = DataBase::albums[uuid];
 
@@ -40,7 +41,7 @@ void TrackModel::setAlbum(const QString &uuid) {
     refreshAll();
 }
 
-bool TrackModel::addNewData(QString name) {
+bool TrackModel::addNewData(const QString& name) {
     // 获取当前专辑
     auto &album = DataBase::albums[album_uuid];
 
@@ -103,9 +104,10 @@ QString TrackModel::getTrackByRow(const int row) const {
 }
 
 void TrackModel::clean() {
+    beginResetModel();
     album_uuid = {};
     tracks = {};
-    refreshAll();
+    endResetModel();
 }
 
 bool TrackModel::isActive() const {

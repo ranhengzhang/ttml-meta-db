@@ -98,11 +98,11 @@ void MainWindow::on_splitter_4_splitterMoved(int pos, int index) {
 
     // 计算splitterB的比例并应用到splitterA
     QList<int> sizes4 = ui->splitter_4->sizes();
-    int total4 = ui->splitter_4->width();
+    const int total4 = ui->splitter_4->width();
     if (total4 > 0) {
-        int total6 = ui->splitter_6->width();
+        const int total6 = ui->splitter_6->width();
         QList<int> newSizes6;
-        for (int size : sizes4) {
+        for (const int size : sizes4) {
             newSizes6.append(size * total6 / total4);
         }
         ui->splitter_6->setSizes(newSizes6);
@@ -117,11 +117,11 @@ void MainWindow::on_splitter_6_splitterMoved(int pos, int index) {
 
     // 计算splitterB的比例并应用到splitterA
     QList<int> sizes6 = ui->splitter_6->sizes();
-    int total6 = ui->splitter_6->width();
+    const int total6 = ui->splitter_6->width();
     if (total6 > 0) {
-        int total4 = ui->splitter_4->width();
+        const int total4 = ui->splitter_4->width();
         QList<int> newSizes4;
-        for (int size : sizes6) {
+        for (const int size : sizes6) {
             newSizes4.append(size * total4 / total6);
         }
         ui->splitter_4->setSizes(newSizes4);
@@ -310,7 +310,7 @@ void MainWindow::on_albums_list_clicked(const QModelIndex &index) const {
     album_artist_model->setFamily(&DataBase::albums[album_uuid].artists, album_uuid);
 }
 
-void MainWindow::on_tracks_list_clicked(const QModelIndex &index) {
+void MainWindow::on_tracks_list_clicked(const QModelIndex &index) const {
     if (!index.isValid()) return;
 
     // 获取模型和行号
@@ -413,8 +413,7 @@ void MainWindow::on_albums_list_customContextMenuRequested(const QPoint &pos) {
 }
 
 void MainWindow::on_album_meta_customContextMenuRequested(const QPoint &pos) {
-    auto *model = qobject_cast<MetaModel*>(ui->album_meta->model());
-    if (!model || !model->isActive()) {
+    if (!album_meta_model->isActive()) {
         return;
     }
 
@@ -440,8 +439,7 @@ void MainWindow::on_album_meta_customContextMenuRequested(const QPoint &pos) {
 }
 
 void MainWindow::on_album_artists_customContextMenuRequested(const QPoint &pos) {
-    auto *model = qobject_cast<AlbumArtistModel*>(ui->album_artists->model());
-    if (!model || !model->isActive()) {
+    if (!album_artist_model->isActive()) {
         return;
     }
 
@@ -467,8 +465,7 @@ void MainWindow::on_album_artists_customContextMenuRequested(const QPoint &pos) 
 }
 
 void MainWindow::on_tracks_list_customContextMenuRequested(const QPoint &pos) {
-    auto *model = qobject_cast<TrackModel*>(ui->tracks_list->model());
-    if (!model || !model->isActive()) {
+    if (!track_list_model->isActive()) {
         return;
     }
 
@@ -499,8 +496,7 @@ void MainWindow::on_tracks_list_customContextMenuRequested(const QPoint &pos) {
 }
 
 void MainWindow::on_track_meta_customContextMenuRequested(const QPoint &pos) {
-    auto *model = qobject_cast<MetaModel*>(ui->track_meta->model());
-    if (!model || !model->isActive()) {
+    if (!track_meta_model->isActive()) {
         return;
     }
 
@@ -526,8 +522,7 @@ void MainWindow::on_track_meta_customContextMenuRequested(const QPoint &pos) {
 }
 
 void MainWindow::on_track_albums_customContextMenuRequested(const QPoint &pos) {
-    auto *model = qobject_cast<TrackAlbumModel*>(ui->track_albums->model());
-    if (!model || !model->isActive()) {
+    if (!track_album_model->isActive()) {
         return;
     }
 
@@ -553,8 +548,7 @@ void MainWindow::on_track_albums_customContextMenuRequested(const QPoint &pos) {
 }
 
 void MainWindow::on_track_feats_customContextMenuRequested(const QPoint &pos) {
-    auto *model = qobject_cast<TrackFeatModel*>(ui->track_feats->model());
-    if (!model || !model->isActive()) {
+    if (!track_feat_model->isActive()) {
         return;
     }
 
@@ -601,7 +595,7 @@ void MainWindow::on_track_id_customContextMenuRequested(const QPoint &pos) {
         });
     }
 
-    QAction *addAction = menu.addAction("添加新行");
+    const QAction *addAction = menu.addAction("添加新行");
     connect(addAction, &QAction::triggered, this, &MainWindow::onAddID);
 
     menu.exec(ui->track_id->viewport()->mapToGlobal(pos));
@@ -725,7 +719,7 @@ void MainWindow::onAddOldAlbum() {
     }
 
     bool ok = false;
-    QString item = QInputDialog::getItem(
+    const QString item = QInputDialog::getItem(
         this,
         "选择已有专辑",
         "专辑名 - 歌手 - 专辑ID",
@@ -813,7 +807,7 @@ void MainWindow::onAddAlbumToArtist() {
     }
 
     bool ok = false;
-    QString item = QInputDialog::getItem(
+    const QString item = QInputDialog::getItem(
         this,
         "选择已有歌手",
         "歌手 - 歌手ID",
@@ -888,9 +882,9 @@ void MainWindow::onAddOldTrack() {
         return;
     }
 
-    QStringList messagesList{messages.begin(), messages.end()};
+    const QStringList messagesList{messages.begin(), messages.end()};
     bool ok = false;
-    QString item = QInputDialog::getItem(
+    const QString item = QInputDialog::getItem(
         this,
         "选择已有单曲",
         "单曲 - 歌手 - 单曲ID",
@@ -900,8 +894,8 @@ void MainWindow::onAddOldTrack() {
         &ok
     );
     if (ok && !item.isEmpty()) {
-        QRegularExpression re(R"((?<=\[)[0-9\-]+(?=\]$))");
-        auto match = re.match(item);
+        const QRegularExpression re(R"((?<=\[)[0-9\-]+(?=\]$))");
+        const auto match = re.match(item);
         if (match.hasMatch() && !track_list_model->addOldData(match.captured(0))) {
             QMessageBox::warning(this, "错误", "单曲已添加或无效！");
         }
@@ -983,7 +977,7 @@ void MainWindow::onAddTrackToAlbum() {
     }
 
     bool ok = false;
-    QString item = QInputDialog::getItem(
+    const QString item = QInputDialog::getItem(
         this,
         "选择已有专辑",
         "专辑 - 专辑ID",
@@ -1032,7 +1026,7 @@ void MainWindow::onAddTrackFeat() {
     }
 
     bool ok = false;
-    QString item = QInputDialog::getItem(
+    const QString item = QInputDialog::getItem(
         this,
         "选择已有歌手",
         "歌手 - 歌手ID",
@@ -1141,15 +1135,9 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::showToast(const QString &name) {
     auto templ = WinToastTemplate(WinToastTemplate::Text02);
-    // templ.setImagePath(ui->imagePath->text().toStdWString(), static_cast<WinToastTemplate::CropHint>(ui->cropHint->currentData().toInt()));
-    // templ.setHeroImagePath(ui->heroPath->text().toStdWString(), ui->inlineHeroImage->isChecked());
     templ.setTextField(name.toStdWString(), WinToastTemplate::FirstLine);
     templ.setTextField(L"元数据已复制到剪贴板", WinToastTemplate::SecondLine);
-    // templ.setTextField(ui->secondLine->text().toStdWString(), WinToastTemplate::SecondLine);
-    // templ.setTextField(ui->thirdLine->text().toStdWString(), WinToastTemplate::ThirdLine);
     templ.setExpiration(10000);
-    // templ.setAudioPath(static_cast<WinToastTemplate::AudioSystemFile>(ui->audioSystemFile->currentData().toInt()));
-    // templ.setAudioOption(static_cast<WinToastLib::WinToastTemplate::AudioOption>(ui->audioMode->currentData().toInt()));
 
     if (WinToast::instance()->showToast(templ, new CustomHandler()) < 0) {
         QMessageBox::warning(this, "Error", "Could not launch your toast notification!");

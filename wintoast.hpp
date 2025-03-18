@@ -7,23 +7,23 @@ using namespace WinToastLib;
 
 class CustomHandler : public IWinToastHandler {
 public:
-    void toastActivated() const {
+    void toastActivated() const override {
         std::wcout << L"The user clicked in this toast" << std::endl;
     }
 
-    void toastActivated(int actionIndex) const {
+    void toastActivated(int actionIndex) const override {
         std::wcout << L"The user clicked on button #" << actionIndex << L" in this toast" << std::endl;
     }
 
-    void toastActivated(const char* response) const {
+    void toastActivated(const char* response) const override {
         std::wcout << L"The user clicked on action #" << response << std::endl;
     }
 
-    void toastFailed() const {
+    void toastFailed() const override {
         std::wcout << L"Error showing current toast" << std::endl;
     }
 
-    void toastDismissed(WinToastDismissalReason state) const {
+    void toastDismissed(WinToastDismissalReason state) const override {
         switch (state) {
             case UserCanceled:
                 std::wcout << L"The user dismissed this toast" << std::endl;

@@ -7,32 +7,31 @@
 
 #include <QAbstractListModel>
 
-class TrackAlbumModel : public QAbstractListModel {
+class TrackAlbumModel final : public QAbstractListModel {
 Q_OBJECT
 public:
-    TrackAlbumModel(QObject *parent = nullptr);
+    explicit TrackAlbumModel(QObject *parent = nullptr);
 
-    int rowCount(const QModelIndex &parent) const override;
+    [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
 
-    QVariant data(const QModelIndex &index, int role) const override;
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
 
     bool addData(const QString& uuid);
 
     bool removeData(int row);
 
-    void setFamily(QList<QString> *list, const QString& uuid);
+    void setFamily(QList<QString> *album_list, const QString& track_uuid);
 
     void clean();
 
-    bool isActive();
+    [[nodiscard]] bool isActive() const;
+
 private:
     QList<QString> *albums{};
 
     QString track_uuid;
 
     QWidget *view{};
-
-    void refreshAll();
 };
 
 

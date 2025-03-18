@@ -18,13 +18,18 @@ public:
     virtual ~DataEntity() = default;
 
     [[nodiscard]] QString getUUID() const;
+
     [[nodiscard]] virtual QJsonObject getSelf() = 0;
+
     [[nodiscard]] QString getName() const;
+
     [[nodiscard]] virtual QList<QString> toXML() const = 0;
+
     void setSelf();
 
 protected:
     QString UUID;
+
     QJsonObject self; // json对象
 
     DataEntity();

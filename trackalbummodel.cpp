@@ -61,24 +61,25 @@ bool TrackAlbumModel::removeData(int row) {
     return true;
 }
 
-void TrackAlbumModel::setFamily(QList<QString> *list, const QString &uuid) {
-    albums = list;
-    track_uuid = uuid;
-
-    refreshAll();
+/**
+ * 设置单曲所有专辑以及单曲 UUID
+ * @param album_list
+ * @param track_uuid
+ */
+void TrackAlbumModel::setFamily(QList<QString> *album_list, const QString &track_uuid) {
+    beginResetModel();
+    albums = album_list;
+    this->track_uuid = track_uuid;
+    endResetModel();
 }
 
 void TrackAlbumModel::clean() {
+    beginResetModel();
     albums = nullptr;
     track_uuid = {};
-    refreshAll();
+    endResetModel();
 }
 
-bool TrackAlbumModel::isActive() {
+bool TrackAlbumModel::isActive() const {
     return albums != nullptr;
-}
-
-void TrackAlbumModel::refreshAll() {
-    beginResetModel(); // 通知视图数据即将全部重置
-    endResetModel();   // 通知视图数据重置完成
 }

@@ -63,19 +63,11 @@ bool IDModel::setData(const QModelIndex &index, const QVariant &value, int role)
     return true;
 }
 
-bool IDModel::addData(QString key, QString value) {
-    // bool exist = false;
-    // for (auto &item: *ids) {
-    //     exist |= item[0] == key && item[1] == value;
-    // }
-    // if (exist) {
-    //     return false;
-    // }
+bool IDModel::addData(const QString& key, const QString& value) {
     if (ids->contains({key, value})) return false;
 
-
     beginInsertRows(QModelIndex(), ids->size(), ids->size());
-    QList val{key, value};
+    const QList val{key, value};
 
     ids->append(val);
     endInsertRows();
@@ -91,7 +83,7 @@ Qt::ItemFlags IDModel::flags(const QModelIndex &index) const {
     return flags;
 }
 
-bool IDModel::insertRows(int row, int count, const QModelIndex &parent) {
+bool IDModel::insertRows(const int row, const int count, const QModelIndex &parent) {
     beginInsertRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i) {
         ids->insert(row, {id_options.first(), ""}); // 默认值
@@ -100,7 +92,7 @@ bool IDModel::insertRows(int row, int count, const QModelIndex &parent) {
     return true;
 }
 
-bool IDModel::removeRows(int row, int count, const QModelIndex &parent) {
+bool IDModel::removeRows(const int row, const int count, const QModelIndex &parent) {
     beginRemoveRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i) {
         ids->removeAt(row);
@@ -113,42 +105,55 @@ bool IDModel::isActive() const {
     return ids != nullptr;
 }
 
-void IDModel::setFamily(QList<QList<QString>> *list, const QString &uuid) {
-    ids = list;
-    track_uuid = uuid;
-
-    refreshAll();
+/**
+ * 设置当前单曲的 ID 列表和 UUID
+ * @param id_list
+ * @param track_uuid
+ */
+void IDModel::setFamily(QList<QList<QString>> *id_list, const QString &track_uuid) {
+    beginResetModel();
+    ids = id_list;
+    this->track_uuid = track_uuid;
+    endResetModel();
 }
 
 void IDModel::clean() {
+    beginResetModel();
     ids = {};
     track_uuid = {};
-
-    refreshAll();
+    endResetModel();
 }
 
 QStringList IDModel::options() {
     return id_options;
 }
 
-QVariant IDModel::headerData(int section, Qt::Orientation orientation, int role) const {
+QVariant IDModel::headerData(const int section, const Qt::Orientation orientation, const int role) const {
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
             case 0: return "Key";
             case 1: return "Value";
+            default: return {};
         }
     }
-    return QVariant();
+    return {};
 }
 
-QString IDModel::analyseId(QString key, QString value, bool *ok) {
+/**
+ * 对于传入的 ID 或 URL 进行分析提取
+ * @param key ID 类型
+ * @param value ID 或 URL
+ * @param ok ID 或 URL 是否合法
+ * @return 分析得到的 ID
+ */
+QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
     *ok = true;
     if (key == "ncmMusicId") {
         const QRegularExpression primary(R"(^[0-9]+$)");
         const auto legal = primary.match(value);
         if (!legal.hasMatch()) {
-            QRegularExpression extract(R"((?<=id\=)[0-9]+)");
-            auto match = extract.match(value);
+            const QRegularExpression extract(R"((?<=id\=)[0-9]+)");
+            const auto match = extract.match(value);
             if (!match.hasMatch()) {
                 *ok = false;
                 return {};
@@ -156,11 +161,11 @@ QString IDModel::analyseId(QString key, QString value, bool *ok) {
             value = match.captured(0);
         }
     } else if (key == "spotifyId") {
-        QRegularExpression primary(R"(^[0-9a-zA-Z]+$)");
-        auto legal = primary.match(value);
+        const QRegularExpression primary(R"(^[0-9a-zA-Z]+$)");
+        const auto legal = primary.match(value);
         if (!legal.hasMatch()) {
-            QRegularExpression extract(R"((?<=track/)[0-9a-zA-Z]+)");
-            auto match = extract.match(value);
+            const QRegularExpression extract(R"((?<=track/)[0-9a-zA-Z]+)");
+            const auto match = extract.match(value);
             if (!match.hasMatch()) {
                 *ok = false;
                 return {};
@@ -168,11 +173,11 @@ QString IDModel::analyseId(QString key, QString value, bool *ok) {
             value = match.captured(0);
         }
     } else if (key == "appleMusicId") {
-        QRegularExpression primary(R"(^[0-9]+$)");
-        auto legal = primary.match(value);
+        const QRegularExpression primary(R"(^[0-9]+$)");
+        const auto legal = primary.match(value);
         if (!legal.hasMatch()) {
-            QRegularExpression extract(R"((?<=i\=)[0-9]+)");
-            auto match = extract.match(value);
+            const QRegularExpression extract(R"((?<=i\=)[0-9]+)");
+            const auto match = extract.match(value);
             if (!match.hasMatch()) {
                 *ok = false;
                 return {};
@@ -180,11 +185,11 @@ QString IDModel::analyseId(QString key, QString value, bool *ok) {
             value = match.captured(0);
         }
     } else if (key == "qqMusicId") {
-        QRegularExpression primary(R"(^[0-9a-zA-Z]+$)");
-        auto legal = primary.match(value);
+        const QRegularExpression primary(R"(^[0-9a-zA-Z]+$)");
+        const auto legal = primary.match(value);
         if (!legal.hasMatch()) {
             QNetworkAccessManager manager;
-            auto request = QNetworkRequest(QUrl(value));
+            const auto request = QNetworkRequest(QUrl(value));
             QNetworkReply* reply = manager.get(request);
 
             // 阻塞等待请求完成
@@ -203,7 +208,7 @@ QString IDModel::analyseId(QString key, QString value, bool *ok) {
             loop.exec();
 
             // 判断超时情况
-            bool isTimeout = !timer.isActive();
+            const bool isTimeout = !timer.isActive();
             if(isTimeout) {
                 reply->deleteLater();
                 *ok = false;
@@ -218,26 +223,26 @@ QString IDModel::analyseId(QString key, QString value, bool *ok) {
             }
 
             // 处理内容...
-            QString content = QString::fromUtf8(reply->readAll());
+            const QString content = QString::fromUtf8(reply->readAll());
             reply->deleteLater();
 
             // 查找目标字符串
-            auto targetIndex = content.indexOf(R"("songList")");
+            const auto targetIndex = content.indexOf(R"("songList")");
             if (targetIndex == -1) {
                 *ok = false;
                 return {};
             }
 
             // 计算起始位置（目标字符串末尾后n个字符）
-            int startPos = targetIndex + 18;
+            const int startPos = targetIndex + 18;
             if (startPos >= content.length()) {
                 *ok = false;
                 return {};
             }
 
             // 正则匹配
-            QRegularExpression re("[0-9A-Za-z]+");
-            QRegularExpressionMatch match = re.match(content, startPos);
+            const QRegularExpression re("[0-9A-Za-z]+");
+            const QRegularExpressionMatch match = re.match(content, startPos);
 
             if (!match.hasMatch()) {
                 *ok = false;
@@ -247,9 +252,4 @@ QString IDModel::analyseId(QString key, QString value, bool *ok) {
         }
     }
     return value;
-}
-
-void IDModel::refreshAll() {
-    beginResetModel(); // 通知视图数据即将全部重置
-    endResetModel();   // 通知视图数据重置完成
 }
