@@ -150,15 +150,11 @@ void MainWindow::on_actionOpen_triggered()
         }
 
         // 读取压缩文件内容
-        const QByteArray compressedData = file.readAll();
+        const QByteArray jsonData = file.readAll();
         file.close();
 
-        // 使用 QZlibCodec 解压 gzip 数据
-        const QByteArray decompressedData = qUncompress(compressedData);
-
         // 尝试解析 JSON 数据
-        const QJsonDocument document = QJsonDocument::fromJson(decompressedData);
-        // const QJsonDocument document = QJsonDocument::fromJson(compressedData);
+        const QJsonDocument document = QJsonDocument::fromJson(jsonData);
 
         if (document.isNull()) {
             qDebug() << "Failed to parse JSON.";
@@ -1187,12 +1183,8 @@ void MainWindow::saveFile() const {
     // 获取 JSON 数据（紧凑格式）
     const QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
-    // 压缩 JSON 数据
-    const QByteArray compressedData = qCompress(jsonData);
-
     // 写入压缩数据
-    file.write(compressedData);
-    // file.write(jsonData);
+    file.write(jsonData);
     file.close();
 
     ui->statusbar->showMessage("导出完成");
