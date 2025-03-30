@@ -328,6 +328,8 @@ void MainWindow::on_tracks_list_clicked(const QModelIndex &index) const {
 
     // 刷新ID列表
     id_model->setFamily(&DataBase::tracks[track_uuid].ids, track_uuid);
+    ui->track_id->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    ui->track_id->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 }
 
 void MainWindow::on_artists_list_customContextMenuRequested(const QPoint &pos) {
@@ -1083,6 +1085,9 @@ void MainWindow::onAddID() {
         // 添加成功时滚动到底部
         const QModelIndex lastIndex = id_model->index(id_model->rowCount(QModelIndex()) - 1, 0);
         ui->track_id->scrollTo(lastIndex, QAbstractItemView::PositionAtBottom);
+
+        ui->track_id->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        ui->track_id->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     } else {
         QMessageBox::critical(this, "撤回", "用户取消输入");
     }

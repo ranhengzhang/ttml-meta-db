@@ -6,6 +6,7 @@
 
 #include <QWidget>
 #include <QEventLoop>
+#include <QHeaderView>
 #include <QNetworkReply>
 #include <QTimer>
 
@@ -58,6 +59,8 @@ bool IDModel::setData(const QModelIndex &index, const QVariant &value, int role)
             return false;
         }
         (*ids)[index.row()][1] = id;
+        view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     }
     emit dataChanged(index, index);
     return true;
