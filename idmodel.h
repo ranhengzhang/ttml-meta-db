@@ -40,12 +40,12 @@ public:
 
     [[nodiscard]] static QString analyseId(const QString &key, QString value, bool *ok);
 
+    static QStringList id_options;
+
 private:
     QList<QList<QString>> *ids{};
 
     QString track_uuid{};
-
-    static QStringList id_options;
 
     QWidget *view{};
 };

@@ -32,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     ui->tabWidget->setCurrentIndex(0);
+    ui->track_id->setItemDelegateForColumn(0, new IDDelegate(IDModel::id_options, this));
+    ui->track_id->setItemDelegateForColumn(1, new IDDelegate(IDModel::id_options, this));
 
     ui->artists_list->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->artist_meta->setContextMenuPolicy(Qt::CustomContextMenu);
