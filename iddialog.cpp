@@ -1,4 +1,7 @@
 #include "iddialog.h"
+
+#include <QClipboard>
+
 #include "ui_iddialog.h"
 
 IDDialog::IDDialog(QWidget *parent) :
@@ -7,6 +10,9 @@ IDDialog::IDDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    const QClipboard *clipboard = QApplication::clipboard();
+    const QString text = clipboard->text();
+    ui->lineEdit->setText(text);
     ui->lineEdit->setFocus();
 }
 
