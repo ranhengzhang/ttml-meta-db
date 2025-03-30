@@ -154,7 +154,62 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
     if (key == "ncmMusicId") {
         const QRegularExpression primary(R"(^[0-9]+$)");
         const auto legal = primary.match(value);
-        if (!legal.hasMatch()) {
+        if (!legal.hasMatch()) { // 不是纯 ID
+            if (value.contains("163cn.tv")) { // 移动端链接
+                QNetworkAccessManager manager;
+                const auto request = QNetworkRequest(QUrl(value));
+                QNetworkReply* reply = manager.get(request);
+
+                // 阻塞等待请求完成
+                QEventLoop loop;
+                QTimer timer;
+                timer.setSingleShot(true);
+
+                // 连接信号（完成/超时）
+                connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+                connect(&timer, &QTimer::timeout, [&](){
+                    loop.quit();
+                    reply->abort(); // 主动终止请求
+                });
+
+                timer.start(10*1000);
+                loop.exec();
+
+                // 判断超时情况
+                const bool isTimeout = !timer.isActive();
+                if (isTimeout) {
+                    reply->deleteLater();
+                    *ok = false;
+                    return {};
+                }
+
+                // 正常错误处理
+                if (reply->error() != QNetworkReply::NoError) {
+                    reply->deleteLater();
+                    *ok = false;
+                    return {};
+                }
+
+                // 处理内容...
+                const QString content = QString::fromUtf8(reply->readAll());
+                reply->deleteLater();
+
+                // 查找目标字符串
+                const auto targetIndex = content.indexOf(R"(meta property="og:url")");
+                if (targetIndex == -1) {
+                    *ok = false;
+                    return {};
+                }
+
+                // 正则匹配
+                const QRegularExpression extract(R"((?<=content=\").*?(?=\"))");
+                const auto href = extract.match(content, targetIndex);
+                if (!href.hasMatch()) {
+                    *ok = false;
+                    return {};
+                }
+                value = href.captured(0);
+            }
             const QRegularExpression extract(R"((?<=id\=)[0-9]+)");
             const auto match = extract.match(value);
             if (!match.hasMatch()) {
