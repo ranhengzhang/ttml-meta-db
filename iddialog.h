@@ -20,8 +20,17 @@ public:
 
     [[nodiscard]] QString getInputText() const;
 
+private slots:
+    void on_lineEdit_textChanged(const QString &arg1) const;
+
 private:
     Ui::IDDialog *ui;
+
+    static QString NCM1;
+    static QString NCM2;
+    static QString QQ;
+    static QString SPF;
+    static QString AM;
 };
 
 #endif // IDDIALOG_H
