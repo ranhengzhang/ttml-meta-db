@@ -1102,7 +1102,7 @@ void MainWindow::on_copy_meta_clicked() {
         auto selected = ui->tracks_list->selectionModel()->selectedRows();
         auto track_uuid = track_list_model->getTrackByRow(selected.first().row());
         auto &track = DataBase::tracks[track_uuid];
-        const auto xml = track.getMetas().join("");
+        const auto xml = track.printMeta().join("");
         QClipboard *clipboard = QApplication::clipboard();
         clipboard->setText(xml);
         showToast(track.getName());

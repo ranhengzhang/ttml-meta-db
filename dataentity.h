@@ -32,7 +32,7 @@ protected:
 
     DataEntity();
 
-    [[nodiscard]] virtual QMap<QString, QSet<QString>> toXML() const = 0;
+    [[nodiscard]] virtual QMap<QString, QSet<QString>> getMetas() const = 0;
 };
 
 

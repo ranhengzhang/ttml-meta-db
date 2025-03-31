@@ -25,10 +25,10 @@ public:
 
     [[nodiscard]] QJsonObject getSelf() override;
 
-    [[nodiscard]] QStringList getMetas();
+    [[nodiscard]] QStringList printMeta() const;
 
 protected:
-    [[nodiscard]] QMap<QString, QSet<QString>> toXML() const override; // 导出xml
+    [[nodiscard]] QMap<QString, QSet<QString>> getMetas() const override; // 导出xml
 };
 
 

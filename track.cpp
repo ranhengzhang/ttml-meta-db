@@ -39,35 +39,35 @@ Track::Track(QJsonObject json):DataEntity(json) {
     }
 }
 
-QMap<QString, QSet<QString>> Track::toXML() const {
-    QMap<QString, QSet<QString>> xml{};
+QMap<QString, QSet<QString>> Track::getMetas() const {
+    QMap<QString, QSet<QString>> metadata{};
 
     // 添加歌曲名
     for (auto &meta:metas) {
-        xml["musicName"].insert(meta);
+        metadata["musicName"].insert(meta);
     }
 
     // 添加ID
     for (const auto&id: ids) {
-        xml[id[0]].insert(id[1]);
+        metadata[id[0]].insert(id[1]);
     }
 
     // 添加合作歌手
     for (const auto& uuid: feats) {
         auto feat = DataBase::artists[uuid];
-        xml["artists"].unite(feat.toXML()["artists"]);
+        metadata["artists"].unite(feat.getMetas()["artists"]);
     }
 
     // 合并专辑信息
     for (const auto& uuid : albums) {
         auto album = DataBase::albums[uuid];
-        auto info = album.toXML();
+        auto info = album.getMetas();
 
-        xml["artists"].unite(info["artists"]);
-        xml["album"].unite(info["album"]);
+        metadata["artists"].unite(info["artists"]);
+        metadata["album"].unite(info["album"]);
     }
     // 返回
-    return xml;
+    return metadata;
 }
 
 /**
@@ -96,8 +96,8 @@ QJsonObject Track::getSelf() {
     return self;
 }
 
-QStringList Track::getMetas() {
-    auto xml = this->toXML();
+QStringList Track::printMeta() const {
+    auto xml = this->getMetas();
     QStringList metas{};
     const QStringList keys = {
         "musicName",

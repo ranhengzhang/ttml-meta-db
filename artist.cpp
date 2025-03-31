@@ -24,15 +24,15 @@ Artist::Artist(QJsonObject json): DataEntity(json) {
     }
 }
 
-QMap<QString, QSet<QString>> Artist::toXML() const {
-    QMap<QString, QSet<QString>> xml{};
+QMap<QString, QSet<QString>> Artist::getMetas() const {
+    QMap<QString, QSet<QString>> metadata{};
 
     // 添加歌手名
     for (auto &meta:metas) {
-        xml["artists"].insert(meta);
+        metadata["artists"].insert(meta);
     }
 
-    return xml;
+    return metadata;
 }
 
 void Artist::remove() {

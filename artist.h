@@ -25,7 +25,7 @@ public:
     [[nodiscard]] QJsonObject getSelf() override;
 
 protected:
-    [[nodiscard]]QMap<QString, QSet<QString>> toXML() const override;
+    [[nodiscard]]QMap<QString, QSet<QString>> getMetas() const override;
 };
 
 #endif //ARTIST_H
