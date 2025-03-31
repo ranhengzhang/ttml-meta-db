@@ -15,7 +15,7 @@ public:
 
     QList<QString> albums{};
 
-    [[nodiscard]]QList<QString> toXML() const override;
+    [[nodiscard]]QMap<QString, QSet<QString>> toXML() const override;
 
     void remove();
 

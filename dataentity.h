@@ -23,7 +23,7 @@ public:
 
     [[nodiscard]] QString getName() const;
 
-    [[nodiscard]] virtual QList<QString> toXML() const = 0;
+    [[nodiscard]] virtual QMap<QString, QSet<QString>> toXML() const = 0;
 
     void setSelf();
 

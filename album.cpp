@@ -36,17 +36,17 @@ Album::Album(QJsonObject json): DataEntity(json) {
     }
 }
 
-QList<QString> Album::toXML() const {
-    QList<QString> xml{};
+QMap<QString, QSet<QString>> Album::toXML() const {
+    QMap<QString, QSet<QString>> xml{};
 
     // 添加专辑名
     for (auto &meta:metas) {
-        xml.append(QString(R"(<amll:meta key="album" value="%1" />)").arg(meta));
+        xml["album"].insert(meta);
     }
 
     // 合并歌手信息
     for (const auto& artist : artists) {
-        xml.append(DataBase::artists[artist].toXML());
+        xml["artists"].unite(DataBase::artists[artist].toXML()["artists"]);
     }
 
     return xml;

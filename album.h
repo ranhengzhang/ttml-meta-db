@@ -17,7 +17,7 @@ public:
 
     QList<QString> tracks{};
 
-    [[nodiscard]]QList<QString> toXML() const override;
+    [[nodiscard]]QMap<QString, QSet<QString>> toXML() const override;
 
     void removeFromArtist(const QString& artist_uuid);
 

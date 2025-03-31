@@ -40,39 +40,35 @@ Track::Track(QJsonObject json):DataEntity(json) {
     }
 }
 
-QList<QString> Track::toXML() const {
-    QSet<QString> xml{};
+QMap<QString, QSet<QString>> Track::toXML() const {
+    QMap<QString, QSet<QString>> xml{};
 
     // 添加歌曲名
     for (auto &meta:metas) {
-        xml.insert(QString(R"(<amll:meta key="musicName" value="%1" />)").arg(meta));
+        xml["musicName"].insert(meta);
     }
 
     // 添加ID
     for (const auto&id: ids) {
-        xml.insert(QString(R"(<amll:meta key="%1" value="%2" />)").arg(id[0]).arg(id[1]));
+        xml[id[0]].insert(id[1]);
     }
 
     // 添加合作歌手
     for (const auto& uuid: feats) {
         auto feat = DataBase::artists[uuid];
-        for (const auto& info: feat.toXML()) {
-            xml.insert(info);
-        }
+        xml["artists"].unite(feat.toXML()["artists"]);
     }
 
     // 合并专辑信息
     for (const auto& uuid : albums) {
         auto album = DataBase::albums[uuid];
-        for (const auto& info : album.toXML()) {
-            xml.insert(info);
-        }
-    }
+        auto info = album.toXML();
 
-    QStringList metas = {xml.begin(), xml.end()};
-    metas.sort();
+        xml["artists"].unite(info["artists"]);
+        xml["album"].unite(info["album"]);
+    }
     // 返回
-    return metas;
+    return xml;
 }
 
 /**
@@ -99,4 +95,27 @@ QJsonObject Track::getSelf() {
     }
     self["ids"] = idsArray;
     return self;
+}
+
+QStringList Track::getMetas() {
+    auto xml = this->toXML();
+    QStringList metas{};
+    const QStringList keys = {
+        "musicName",
+        "artists",
+        "album",
+        "ncmMusicId",
+        "qqMusicId",
+        "spotifyId",
+        "appleMusicId",
+        "isrc"
+    };
+
+    for (auto &key : keys) {
+        for (auto &value: xml[key]) {
+            metas.append(QString(R"(<amll:meta key="%1" value="%2" />)").arg(key).arg(value));
+        }
+    }
+
+    return metas;
 }

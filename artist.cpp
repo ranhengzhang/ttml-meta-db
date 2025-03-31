@@ -24,12 +24,12 @@ Artist::Artist(QJsonObject json): DataEntity(json) {
     }
 }
 
-QList<QString> Artist::toXML() const {
-    QList<QString> xml{};
+QMap<QString, QSet<QString>> Artist::toXML() const {
+    QMap<QString, QSet<QString>> xml{};
 
     // 添加歌手名
     for (auto &meta:metas) {
-        xml.append(QString(R"(<amll:meta key="artists" value="%1" />)").arg(meta));
+        xml["artists"].insert(meta);
     }
 
     return xml;
