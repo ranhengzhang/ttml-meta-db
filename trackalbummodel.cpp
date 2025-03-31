@@ -63,8 +63,8 @@ bool TrackAlbumModel::removeData(int row) {
 
 /**
  * 设置单曲所有专辑以及单曲 UUID
- * @param album_list
- * @param track_uuid
+ * @param album_list 专辑列表
+ * @param track_uuid 单曲 UUID
  */
 void TrackAlbumModel::setFamily(QList<QString> *album_list, const QString &track_uuid) {
     beginResetModel();

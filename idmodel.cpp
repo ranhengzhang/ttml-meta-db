@@ -56,7 +56,7 @@ bool IDModel::setData(const QModelIndex &index, const QVariant &value, int role)
         (*ids)[index.row()][0] = value.toString();
     } else {
         bool ok = false;
-        auto id = analyseId((*ids)[index.row()][0], value.toString(), &ok);
+        const auto id = analyseId((*ids)[index.row()][0], value.toString(), &ok);
         if (!ok) {
             return false;
         }
@@ -112,8 +112,8 @@ bool IDModel::isActive() const {
 
 /**
  * 设置当前单曲的 ID 列表和 UUID
- * @param id_list
- * @param track_uuid
+ * @param id_list ID 列表
+ * @param track_uuid 单曲 UUID
  */
 void IDModel::setFamily(QList<QList<QString>> *id_list, const QString &track_uuid) {
     beginResetModel();
@@ -148,7 +148,7 @@ QVariant IDModel::headerData(const int section, const Qt::Orientation orientatio
  * 对于传入的 ID 或 URL 进行分析提取
  * @param key ID 类型
  * @param value ID 或 URL
- * @param ok ID 或 URL 是否合法
+ * @param ok 返回 ID 或 URL 是否合法
  * @return 分析得到的 ID
  */
 QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
@@ -210,8 +210,10 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
                     *ok = false;
                     return {};
                 }
-                value = href.captured(0);
+                value = href.captured(0); // 使用正确链接覆盖
             }
+
+            // 提取 ID
             const QRegularExpression extract(R"((?<=id\=)[0-9]+)");
             const auto match = extract.match(value);
             if (!match.hasMatch()) {
@@ -219,6 +221,7 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
                 return {};
             }
 
+            // 尝试获取别名
             QNetworkAccessManager manager;
             const auto request = QNetworkRequest(QUrl(value));
             QNetworkReply* reply = manager.get(request);
@@ -278,7 +281,7 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
     } else if (key == "spotifyId") {
         const QRegularExpression primary(R"(^[0-9a-zA-Z]+$)");
         const auto legal = primary.match(value);
-        if (!legal.hasMatch()) {
+        if (!legal.hasMatch()) { // 不是纯 ID
             const QRegularExpression extract(R"((?<=track/)[0-9a-zA-Z]+)");
             const auto match = extract.match(value);
             if (!match.hasMatch()) {
@@ -290,7 +293,7 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
     } else if (key == "appleMusicId") {
         const QRegularExpression primary(R"(^[0-9]+$)");
         const auto legal = primary.match(value);
-        if (!legal.hasMatch()) {
+        if (!legal.hasMatch()) { // 不是纯 ID
             const QRegularExpression extract(R"((?<=i\=)[0-9]+)");
             const auto match = extract.match(value);
             if (!match.hasMatch()) {
@@ -355,12 +358,13 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
                 const QRegularExpression re(R"((?<=\"mid\":\")[0-9A-Za-z]+)");
                 const auto match = re.match(content, targetIndex);
 
-            if (!match.hasMatch()) {
-                *ok = false;
-                return {};
-            }
-            value = match.captured(0);
+                if (!match.hasMatch()) {
+                    *ok = false;
+                    return {};
+                }
+                value = match.captured(0);
 
+                // 尝试获取别名
                 const QRegularExpression ti(R"((?<=\"subtitle\":\").*?(?=\"))");
                 const auto exists = ti.match(content, targetIndex);
 

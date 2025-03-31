@@ -96,10 +96,17 @@ QJsonObject Track::getSelf() {
     return self;
 }
 
+/**
+ * 获取当前歌曲包含的元数据，排序后返回
+ * \code{.xml}
+ * <amll:meta key="%1" value="%2" />
+ * \endcode
+ * @return xml 格式并且排序好的元数据
+ */
 QStringList Track::printMeta() const {
     auto xml = this->getMetas();
     QStringList metas{};
-    const QStringList keys = {
+    const QStringList keys = { // ID 顺序
         "musicName",
         "artists",
         "album",

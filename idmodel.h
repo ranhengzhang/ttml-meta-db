@@ -7,8 +7,9 @@
 
 #include <QTableView>
 
+#include "albumartistmodel.h"
 
-class IDModel: public QAbstractTableModel {
+class IDModel final : public QAbstractTableModel {
 Q_OBJECT
 public:
     explicit IDModel(QObject *parent = nullptr);

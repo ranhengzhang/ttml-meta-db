@@ -13,8 +13,8 @@ IDDelegate::IDDelegate(const QStringList &options, QObject *parent): QStyledItem
 
 QWidget * IDDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,
 const QModelIndex &index) const {
-    if (index.column() == 0) {
-        QComboBox *editor = new QComboBox(parent);
+    if (index.column() == 0) { // key 列
+        auto *editor = new QComboBox(parent);
         editor->addItems(id_options);
 
         // 计算最长文本宽度
@@ -29,18 +29,18 @@ const QModelIndex &index) const {
 
         return editor;
     }
-    if (index.column() == 1) {
-        QLineEdit *editor = new QLineEdit(parent);
+    if (index.column() == 1) { // value 列
+        auto *editor = new QLineEdit(parent);
         return editor;
     }
     return QStyledItemDelegate::createEditor(parent, option, index);
 }
 
 void IDDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const {
-    if (index.column() == 0) {
+    if (index.column() == 0) { // key 列
         auto *combo = dynamic_cast<QComboBox*>(editor);
         combo->setCurrentText(index.model()->data(index).toString());
-    } else if (index.column() == 1) {
+    } else if (index.column() == 1) { // value 列
         auto *line = dynamic_cast<QLineEdit*>(editor);
         line->setText(index.model()->data(index).toString());
     } else {
@@ -49,11 +49,11 @@ void IDDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const 
 }
 
 void IDDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const {
-    if (index.column() == 0) {
-        auto *combo = dynamic_cast<QComboBox*>(editor);
+    if (index.column() == 0) { // key 列
+        const auto *combo = dynamic_cast<QComboBox*>(editor);
         model->setData(index, combo->currentText());
-    } else if (index.column() == 1) {
-        auto *line = dynamic_cast<QLineEdit*>(editor);
+    } else if (index.column() == 1) { // value 列
+        const auto *line = dynamic_cast<QLineEdit*>(editor);
         model->setData(index, line->text());
     } else {
         QStyledItemDelegate::setModelData(editor, model, index);

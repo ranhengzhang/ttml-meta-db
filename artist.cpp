@@ -24,6 +24,15 @@ Artist::Artist(QJsonObject json): DataEntity(json) {
     }
 }
 
+/**
+ * 以 key-valueSet 的形式返回歌手名
+ * \code{.json}
+ * {
+ *     "artists": set<str>["歌手名1","歌手名2"],
+ * }
+ * \endcode
+ * @return 元数据 map
+ */
 QMap<QString, QSet<QString>> Artist::getMetas() const {
     QMap<QString, QSet<QString>> metadata{};
 

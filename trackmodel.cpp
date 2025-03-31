@@ -30,8 +30,11 @@ QVariant TrackModel::data(const QModelIndex &index, int role) const {
     return {};
 }
 
+/**
+ * 设置当前专辑
+ * @param uuid 专辑 UUID
+ */
 void TrackModel::setAlbum(const QString &uuid) {
-    beginResetModel();
     album_uuid = uuid;
     const auto &album = DataBase::albums[uuid];
 
@@ -83,7 +86,12 @@ bool TrackModel::addOldData(const QString& uuid) {
     return false;
 }
 
-bool TrackModel::removeTrackFromAlbum(int row) {
+/**
+ *  根据选中单曲行号从专辑中删除单曲
+ * @param row 选中单曲的行号
+ * @return 删除成功/失败
+ */
+bool TrackModel::removeTrackFromAlbum(const int row) {
     if (row < 0 || row >= tracks.size())
         return false;
 
@@ -98,6 +106,11 @@ bool TrackModel::removeTrackFromAlbum(int row) {
     return true;
 }
 
+/**
+ * 根据行号获取选中单曲的 UUID
+ * @param row 选中单曲的行号
+ * @return 单曲的 UUID
+ */
 QString TrackModel::getTrackByRow(const int row) const {
     Q_ASSERT(row >= 0 && row < tracks.size());
     return tracks.at(row);

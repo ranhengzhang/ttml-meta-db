@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 
-#include "AlbumArtistModel.h"
+#include "albumartistmodel.h"
 #include "albummodel.h"
 #include "artistmodel.h"
 #include "idmodel.h"

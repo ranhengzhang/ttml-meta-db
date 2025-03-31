@@ -36,6 +36,16 @@ Album::Album(QJsonObject json): DataEntity(json) {
     }
 }
 
+/**
+ * 以 key-valueSet 的形式返回专辑名以及所有歌手的歌手名
+ * \code{.json}
+ * {
+ *   "album": set<str>["专辑名1","专辑名2"],
+ *   "artists": set<str>["歌手名1","歌手名2"],
+ * }
+ * \endcode
+ * @return 元数据 map
+ */
 QMap<QString, QSet<QString>> Album::getMetas() const {
     QMap<QString, QSet<QString>> metadata{};
 

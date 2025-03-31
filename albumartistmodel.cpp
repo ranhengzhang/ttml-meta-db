@@ -2,7 +2,7 @@
 // Created by LEGION on 25-3-10.
 //
 
-#include "AlbumArtistModel.h"
+#include "albumartistmodel.h"
 
 #include <QWidget>
 
@@ -36,9 +36,9 @@ QVariant AlbumArtistModel::data(const QModelIndex &index, const int role) const 
  * @return 添加成功/失败
  */
 bool AlbumArtistModel::addData(const QString& artist_uuid) {
-    if (DataBase::artists.contains(artist_uuid)) {
+    if (DataBase::artists.contains(artist_uuid)) { // 检查是否存在歌手
         auto &artist = DataBase::artists[artist_uuid];
-        if (artist.albums.contains(album_uuid)) {
+        if (artist.albums.contains(album_uuid)) { // 检查是否已经添加过
             return false;
         }
 

@@ -15,7 +15,7 @@
 #include "artistmodel.h"
 #include "database.h"
 #include "metamodel.h"
-#include "AlbumArtistModel.h"
+#include "albumartistmodel.h"
 #include "iddelegate.h"
 #include "iddialog.h"
 #include "idmodel.h"
@@ -27,14 +27,17 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-{
+      , ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
+    // 设置默认界面
     ui->tabWidget->setCurrentIndex(0);
+
+    // 为 ID View 绑定代理，显示下拉列表
     ui->track_id->setItemDelegateForColumn(0, new IDDelegate(IDModel::id_options, this));
     ui->track_id->setItemDelegateForColumn(1, new IDDelegate(IDModel::id_options, this));
 
+    // 设置右键菜单代理
     ui->artists_list->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->artist_meta->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->albums_list->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -46,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->track_feats->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->track_id->setContextMenuPolicy(Qt::CustomContextMenu);
 
+    // 初始化 model
     artist_list_model = new ArtistModel(ui->artists_list);
     album_list_model = new AlbumModel(ui->albums_list);
     track_list_model = new TrackModel(ui->tracks_list);
@@ -57,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
     track_feat_model = new TrackFeatModel(ui->track_feats);
     id_model = new IDModel(ui->track_id);
 
+    // 设置 model
     ui->artists_list->setModel(artist_list_model);
     ui->albums_list->setModel(album_list_model);
     ui->tracks_list->setModel(track_list_model);
@@ -68,8 +73,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->track_feats->setModel(track_feat_model);
     ui->track_id->setModel(id_model);
 
+    // 自动保存
     timer = new QTimer(this);
-    timer->setInterval(300000);
+    timer->setInterval(5 * 60 * 1000);
     timer->setSingleShot(true);
     connect(timer, &QTimer::timeout, this, [this]() {
         if (!filePath.isEmpty()) {
@@ -78,6 +84,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
     timer->start();
 
+    // wintoast 通知栏
     WinToast::instance()->setAppName(L"TTML META DB");
     WinToast::instance()->setAppUserModelId(WinToast::configureAUMI(L"TTML META DB", L"TTML.META.DB"));
     if (!WinToast::instance()->initialize()) {
@@ -86,14 +93,13 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     auto *shortcut = new QShortcut(QKeySequence("Ctrl+S"), this);
-    connect(shortcut,&QShortcut::activated ,this,&MainWindow::on_actionSave_triggered);
+    connect(shortcut, &QShortcut::activated, this, &MainWindow::on_actionSave_triggered);
     connect(IDModel::emitter, &IDModel::subtitleGot, this, [this](QString name) {
         track_meta_model->addData(name);
     });
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
     delete IDModel::emitter;
 }
@@ -108,7 +114,7 @@ void MainWindow::on_splitter_4_splitterMoved(int pos, int index) {
     if (total4 > 0) {
         const int total6 = ui->splitter_6->width();
         QList<int> newSizes6;
-        for (const int size : sizes4) {
+        for (const int size: sizes4) {
             newSizes6.append(size * total6 / total4);
         }
         ui->splitter_6->setSizes(newSizes6);
@@ -127,7 +133,7 @@ void MainWindow::on_splitter_6_splitterMoved(int pos, int index) {
     if (total6 > 0) {
         const int total4 = ui->splitter_4->width();
         QList<int> newSizes4;
-        for (const int size : sizes6) {
+        for (const int size: sizes6) {
             newSizes4.append(size * total4 / total6);
         }
         ui->splitter_4->setSizes(newSizes4);
@@ -137,8 +143,10 @@ void MainWindow::on_splitter_6_splitterMoved(int pos, int index) {
 }
 
 
-void MainWindow::on_actionOpen_triggered()
-{
+/**
+ * 打开文件
+ */
+void MainWindow::on_actionOpen_triggered() {
     const QString openPath = QFileDialog::getOpenFileName(this, "打开元数据库文件", "", "TTML元数据库 (*.metadb)");
 
     if (openPath.isEmpty()) {
@@ -179,7 +187,7 @@ void MainWindow::on_actionOpen_triggered()
             DataBase::artists.clear();
             if (jsonObject.contains("artists") && jsonObject["artists"].isArray()) {
                 QJsonArray artists_json = jsonObject["artists"].toArray();
-                for (const QJsonValue artist : artists_json) {
+                for (const QJsonValue artist: artists_json) {
                     const QJsonObject item = artist.toObject();
                     Artist new_artist(item);
                     DataBase::artists.insert(new_artist.getUUID(), new_artist);
@@ -190,7 +198,7 @@ void MainWindow::on_actionOpen_triggered()
             DataBase::albums.clear();
             if (jsonObject.contains("albums") && jsonObject["albums"].isArray()) {
                 QJsonArray albums_json = jsonObject["albums"].toArray();
-                for (const QJsonValue value : albums_json) {
+                for (const QJsonValue value: albums_json) {
                     const QJsonObject item = value.toObject();
                     Album new_album(item);
                     DataBase::albums.insert(new_album.getUUID(), new_album);
@@ -201,7 +209,7 @@ void MainWindow::on_actionOpen_triggered()
             DataBase::tracks.clear();
             if (jsonObject.contains("tracks") && jsonObject["tracks"].isArray()) {
                 QJsonArray tracks_json = jsonObject["tracks"].toArray();
-                for (const QJsonValue value : tracks_json) {
+                for (const QJsonValue value: tracks_json) {
                     const QJsonObject item = value.toObject();
                     Track new_track(item);
                     DataBase::tracks.insert(new_track.getUUID(), new_track);
@@ -218,8 +226,10 @@ void MainWindow::on_actionOpen_triggered()
     }
 }
 
-void MainWindow::on_actionSave_triggered()
-{
+/**
+ * 保存
+ */
+void MainWindow::on_actionSave_triggered() {
     if (filePath.isEmpty()) {
         on_actionSaveAs_triggered();
     } else {
@@ -228,10 +238,12 @@ void MainWindow::on_actionSave_triggered()
 }
 
 
-void MainWindow::on_actionSaveAs_triggered()
-{
+/**
+ * 另存为
+ */
+void MainWindow::on_actionSaveAs_triggered() {
     // 弹出文件对话框选择保存路径
-    const QString savePath = QFileDialog::getSaveFileName(this,"保存元数据库文件","",  "TTML元数据库 (*.metadb)"
+    const QString savePath = QFileDialog::getSaveFileName(this, "保存元数据库文件", "", "TTML元数据库 (*.metadb)"
     );
 
     if (savePath.isEmpty()) {
@@ -244,6 +256,10 @@ void MainWindow::on_actionSaveAs_triggered()
     saveFile();
 }
 
+/**
+ * 懒加载页面
+ * @param index 选中标签页的 index
+ */
 void MainWindow::on_tabWidget_currentChanged(const int index) const {
     if (index == 1) {
         auto selected_artist = ui->artists_list->selectionModel()->selectedIndexes();
@@ -327,7 +343,7 @@ void MainWindow::on_tracks_list_clicked(const QModelIndex &index) const {
     // 刷新专辑歌手列表
     track_album_model->setFamily(&DataBase::tracks[track_uuid].albums, track_uuid);
 
-     // 刷新合作歌手列表
+    // 刷新合作歌手列表
     track_feat_model->setFamily(&DataBase::tracks[track_uuid].feats, track_uuid);
 
     // 刷新ID列表
@@ -578,7 +594,7 @@ void MainWindow::on_track_feats_customContextMenuRequested(const QPoint &pos) {
 }
 
 void MainWindow::on_track_id_customContextMenuRequested(const QPoint &pos) {
-    auto *model = qobject_cast<IDModel*>(ui->track_id->model());
+    auto *model = qobject_cast<IDModel *>(ui->track_id->model());
     if (!model || !model->isActive()) {
         return;
     }
@@ -793,7 +809,7 @@ void MainWindow::onDeleteAlbumMeta() {
         "确认删除",
         "确定要删除此项吗？",
         QMessageBox::Yes | QMessageBox::No
-        );
+    );
 
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
@@ -961,7 +977,7 @@ void MainWindow::onDeleteTrackMeta() {
         "确认删除",
         "确定要删除此项吗？",
         QMessageBox::Yes | QMessageBox::No
-        );
+    );
 
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
@@ -1075,7 +1091,7 @@ void MainWindow::onAddID() {
     dialog.setWindowTitle("添加ID");
     dialog.setWindowIcon(QIcon(":/res/favicon.ico"));
     if (dialog.exec() == QDialog::Accepted) {
-        auto key = dialog.getSelectedOption();
+        const auto key = dialog.getSelectedOption();
         auto value = dialog.getInputText();
         bool ok = false;
         value = IDModel::analyseId(key, value, &ok);
@@ -1099,8 +1115,9 @@ void MainWindow::onAddID() {
 
 void MainWindow::on_copy_meta_clicked() {
     if (track_list_model->isActive()) {
+        // 选中时才复制
         auto selected = ui->tracks_list->selectionModel()->selectedRows();
-        auto track_uuid = track_list_model->getTrackByRow(selected.first().row());
+        const auto track_uuid = track_list_model->getTrackByRow(selected.first().row());
         auto &track = DataBase::tracks[track_uuid];
         const auto xml = track.printMeta().join("");
         QClipboard *clipboard = QApplication::clipboard();
@@ -1109,21 +1126,25 @@ void MainWindow::on_copy_meta_clicked() {
     }
 }
 
+/**
+ * 关闭前询问是否退出
+ * @param event 响应事件
+ */
 void MainWindow::closeEvent(QCloseEvent *event) {
     // 创建询问对话框
-    QMessageBox::StandardButton resBtn = QMessageBox::question(
+    const QMessageBox::StandardButton resBtn = QMessageBox::question(
         this,
         "确认退出",
         "退出前需要保存文件吗？",
         QMessageBox::Yes | QMessageBox::No,
-        QMessageBox::No  // 默认选中No
-        );
+        QMessageBox::No // 默认选中No
+    );
 
     // 根据用户选择处理事件
     if (resBtn == QMessageBox::Yes) {
         if (filePath.isEmpty()) {
             // 弹出文件对话框选择保存路径
-            const QString savePath = QFileDialog::getSaveFileName(this,"保存元数据库文件","",  "TTML元数据库 (*.metadb)"
+            const QString savePath = QFileDialog::getSaveFileName(this, "保存元数据库文件", "", "TTML元数据库 (*.metadb)"
             );
 
             if (savePath.isEmpty()) {
@@ -1137,9 +1158,13 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         }
         saveFile();
     }
-    event->accept();  // 接受关闭事件
+    event->accept(); // 接受关闭事件
 }
 
+/**
+ * 显示 wintoast 弹窗
+ * @param name 单曲名
+ */
 void MainWindow::showToast(const QString &name) {
     auto templ = WinToastTemplate(WinToastTemplate::Text02);
     templ.setTextField(name.toStdWString(), WinToastTemplate::FirstLine);
@@ -1151,6 +1176,9 @@ void MainWindow::showToast(const QString &name) {
     }
 }
 
+/**
+ * 保存文件
+ */
 void MainWindow::saveFile() const {
     if (timer->isActive()) {
         timer->stop();
@@ -1166,17 +1194,17 @@ void MainWindow::saveFile() const {
 
     // 将数组转换为 QJsonArray
     QJsonArray artists_json{};
-    for (auto &obj : DataBase::artists) {
+    for (auto &obj: DataBase::artists) {
         artists_json.append(obj.getSelf());
     }
 
     QJsonArray albums_json{};
-    for (auto &obj : DataBase::albums) {
+    for (auto &obj: DataBase::albums) {
         albums_json.append(obj.getSelf());
     }
 
     QJsonArray tracks_json{};
-    for (auto &obj : DataBase::tracks) {
+    for (auto &obj: DataBase::tracks) {
         tracks_json.append(obj.getSelf());
     }
 

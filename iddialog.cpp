@@ -48,6 +48,7 @@ QString IDDialog::getInputText() const {
 }
 
 void IDDialog::on_lineEdit_textChanged(const QString &arg1) const {
+    // 尝试匹配 ID
     if (arg1.contains(IDDialog::NCM1) || arg1.contains(IDDialog::NCM2)) {
         ui->comboBox->setCurrentText("ncmMusicId");
     } else if (arg1.contains(IDDialog::QQ)) {
