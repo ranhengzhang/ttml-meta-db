@@ -5,7 +5,8 @@
 #ifndef IDMODEL_H
 #define IDMODEL_H
 
-#include "AlbumArtistModel.h"
+#include <QTableView>
+
 
 class IDModel: public QAbstractTableModel {
 Q_OBJECT
@@ -42,12 +43,17 @@ public:
 
     static QStringList id_options;
 
+    static IDModel *emitter;
+
+signals:
+    void subtitleGot(QString subtitle);
+
 private:
     QList<QList<QString>> *ids{};
 
     QString track_uuid{};
 
-    QWidget *view{};
+    QTableView *view{};
 };
 
 

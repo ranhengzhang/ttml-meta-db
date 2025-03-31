@@ -18,8 +18,10 @@ QList<QString> IDModel::id_options = {
     "isrc"
 };
 
+IDModel* IDModel::emitter = new IDModel(nullptr);
+
 IDModel::IDModel(QObject *parent) {
-    view = dynamic_cast<QWidget*>(parent);
+    view = dynamic_cast<QTableView*>(parent);
 }
 
 int IDModel::rowCount(const QModelIndex &parent) const {
@@ -216,6 +218,61 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
                 *ok = false;
                 return {};
             }
+
+            QNetworkAccessManager manager;
+            const auto request = QNetworkRequest(QUrl(value));
+            QNetworkReply* reply = manager.get(request);
+
+            // 阻塞等待请求完成
+            QEventLoop loop;
+            QTimer timer;
+            timer.setSingleShot(true);
+
+            // 连接信号（完成/超时）
+            connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+            connect(&timer, &QTimer::timeout, [&](){
+                loop.quit();
+                reply->abort(); // 主动终止请求
+            });
+
+            timer.start(10*1000);
+            loop.exec();
+
+            // 判断超时情况
+            const bool isTimeout = !timer.isActive();
+            if (isTimeout) {
+                reply->deleteLater();
+                *ok = false;
+                return {};
+            }
+
+            // 正常错误处理
+            if (reply->error() != QNetworkReply::NoError) {
+                reply->deleteLater();
+                *ok = false;
+                return {};
+            }
+
+            // 处理内容...
+            const QString content = QString::fromUtf8(reply->readAll());
+            reply->deleteLater();
+
+            // 查找目标字符串
+            const auto targetIndex = content.indexOf(R"(subtit)");
+            if (targetIndex < 0) {
+                *ok = false;
+                return {};
+            }
+
+            // 正则匹配
+            const QRegularExpression find(R"((?<=\"\>\n).*?(?=\n))");
+            const auto subtitle = find.match(content, targetIndex);
+            if (!subtitle.hasMatch()) {
+                *ok = false;
+                return {};
+            }
+            emit emitter->subtitleGot(subtitle.captured(0));
+
             value = match.captured(0);
         }
     } else if (key == "spotifyId") {
@@ -245,68 +302,81 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
     } else if (key == "qqMusicId") {
         const QRegularExpression primary(R"(^[0-9a-zA-Z]+$)");
         const auto legal = primary.match(value);
-        if (!legal.hasMatch()) {
-            QNetworkAccessManager manager;
-            const auto request = QNetworkRequest(QUrl(value));
-            QNetworkReply* reply = manager.get(request);
+        if (!legal.hasMatch()) { // 不是纯 ID
+            const QRegularExpression mobile(R"(u\?__=[a-zA-Z])");
+            const auto need = mobile.match(value);
+            if (need.hasMatch()) { // 客户端链接
+                QNetworkAccessManager manager;
+                const auto request = QNetworkRequest(QUrl(value));
+                QNetworkReply* reply = manager.get(request);
 
-            // 阻塞等待请求完成
-            QEventLoop loop;
-            QTimer timer;
-            timer.setSingleShot(true);
+                // 阻塞等待请求完成
+                QEventLoop loop;
+                QTimer timer;
+                timer.setSingleShot(true);
 
-            // 连接信号（完成/超时）
-            connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-            connect(&timer, &QTimer::timeout, [&](){
-                loop.quit();
-                reply->abort();  // 主动终止请求
-            });
+                // 连接信号（完成/超时）
+                connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+                connect(&timer, &QTimer::timeout, [&](){
+                    loop.quit();
+                    reply->abort();  // 主动终止请求
+                });
 
-            timer.start(10*1000);
-            loop.exec();
+                timer.start(10*1000);
+                loop.exec();
 
-            // 判断超时情况
-            const bool isTimeout = !timer.isActive();
-            if(isTimeout) {
+                // 判断超时情况
+                const bool isTimeout = !timer.isActive();
+                if(isTimeout) {
+                    reply->deleteLater();
+                    *ok = false;
+                    return {};
+                }
+
+                // 正常错误处理
+                if (reply->error() != QNetworkReply::NoError) {
+                    reply->deleteLater();
+                    *ok = false;
+                    return {};
+                }
+
+                // 处理内容...
+                const QString content = QString::fromUtf8(reply->readAll());
                 reply->deleteLater();
-                *ok = false;
-                return {};
-            }
 
-            // 正常错误处理
-            if (reply->error() != QNetworkReply::NoError) {
-                reply->deleteLater();
-                *ok = false;
-                return {};
-            }
+                // 查找目标字符串
+                const auto targetIndex = content.indexOf(R"("songList")");
+                if (targetIndex == -1) {
+                    *ok = false;
+                    return {};
+                }
 
-            // 处理内容...
-            const QString content = QString::fromUtf8(reply->readAll());
-            reply->deleteLater();
-
-            // 查找目标字符串
-            const auto targetIndex = content.indexOf(R"("songList")");
-            if (targetIndex == -1) {
-                *ok = false;
-                return {};
-            }
-
-            // 计算起始位置（目标字符串末尾后n个字符）
-            const int startPos = targetIndex + 18;
-            if (startPos >= content.length()) {
-                *ok = false;
-                return {};
-            }
-
-            // 正则匹配
-            const QRegularExpression re("[0-9A-Za-z]+");
-            const QRegularExpressionMatch match = re.match(content, startPos);
+                // 正则匹配
+                const QRegularExpression re(R"((?<=\"mid\":\")[0-9A-Za-z]+)");
+                const auto match = re.match(content, targetIndex);
 
             if (!match.hasMatch()) {
                 *ok = false;
                 return {};
             }
             value = match.captured(0);
+
+                const QRegularExpression ti(R"((?<=\"subtitle\":\").*?(?=\"))");
+                const auto exists = ti.match(content, targetIndex);
+
+                if (exists.hasMatch()) {
+                    emit IDModel::emitter->subtitleGot(exists.captured(0));
+                }
+            }
+            else { // 网页端链接(可以直接获取到 ID)
+                const QRegularExpression extract(R"((?<=(songDetail/|songmid=))[0-9a-zA-Z]+)");
+                const auto mid = extract.match(value);
+                if (!mid.hasMatch()) {
+                    *ok = false;
+                    return {};
+                }
+                value = mid.captured(0);
+            }
         }
     }
     return value;

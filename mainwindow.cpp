@@ -87,11 +87,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     auto *shortcut = new QShortcut(QKeySequence("Ctrl+S"), this);
     connect(shortcut,&QShortcut::activated ,this,&MainWindow::on_actionSave_triggered);
+    connect(IDModel::emitter, &IDModel::subtitleGot, this, [this](QString name) {
+        track_meta_model->addData(name);
+    });
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete IDModel::emitter;
 }
 
 void MainWindow::on_splitter_4_splitterMoved(int pos, int index) {
