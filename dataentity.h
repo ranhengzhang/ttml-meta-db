@@ -23,8 +23,6 @@ public:
 
     [[nodiscard]] QString getName() const;
 
-    [[nodiscard]] virtual QMap<QString, QSet<QString>> toXML() const = 0;
-
     void setSelf();
 
 protected:
@@ -33,6 +31,8 @@ protected:
     QJsonObject self; // json对象
 
     DataEntity();
+
+    [[nodiscard]] virtual QMap<QString, QSet<QString>> toXML() const = 0;
 };
 
 

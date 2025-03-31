@@ -21,13 +21,14 @@ public:
 
     QList<QList<QString>> ids; // 歌曲ID列表
 
-    [[nodiscard]] QMap<QString, QSet<QString>> toXML() const override; // 导出xml
-
     void removeFromAlbum(const QString& album_uuid);
 
     [[nodiscard]] QJsonObject getSelf() override;
 
     [[nodiscard]] QStringList getMetas();
+
+protected:
+    [[nodiscard]] QMap<QString, QSet<QString>> toXML() const override; // 导出xml
 };
 
 

@@ -7,7 +7,12 @@
 
 #include "dataentity.h"
 
+class Album;
+class Track;
 class Artist final :public DataEntity{
+    friend Album;
+    friend Track;
+
 public:
     Artist();
 
@@ -15,11 +20,12 @@ public:
 
     QList<QString> albums{};
 
-    [[nodiscard]]QMap<QString, QSet<QString>> toXML() const override;
-
     void remove();
 
     [[nodiscard]] QJsonObject getSelf() override;
+
+protected:
+    [[nodiscard]]QMap<QString, QSet<QString>> toXML() const override;
 };
 
 #endif //ARTIST_H
