@@ -1275,18 +1275,18 @@ void MainWindow::saveFile() const {
 
     // 将数组转换为 QJsonArray
     QJsonArray artists_json{};
-    for (auto &obj: DataBase::artists) {
-        artists_json.append(obj.getSelf());
+    for (auto &artist: DataBase::artists) {
+        if (!artist.isEmpty()) artists_json.append(artist.getSelf());
     }
 
     QJsonArray albums_json{};
-    for (auto &obj: DataBase::albums) {
-        albums_json.append(obj.getSelf());
+    for (auto &album: DataBase::albums) {
+        if (!album.isEmpty()) albums_json.append(album.getSelf());
     }
 
     QJsonArray tracks_json{};
-    for (auto &obj: DataBase::tracks) {
-        tracks_json.append(obj.getSelf());
+    for (auto &track: DataBase::tracks) {
+        if (!track.isEmpty()) tracks_json.append(track.getSelf());
     }
 
     // 将 QJsonArray 封装到 QJsonObject 中

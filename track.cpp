@@ -125,3 +125,7 @@ QStringList Track::printMeta() const {
 
     return metas;
 }
+
+bool Track::isEmpty() {
+    return DataEntity::isEmpty() && this->albums.isEmpty() && this->feats.isEmpty() && this->ids.isEmpty();
+}

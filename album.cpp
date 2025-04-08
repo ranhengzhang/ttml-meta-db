@@ -89,3 +89,7 @@ QJsonObject Album::getSelf() {
     self["tracks"] = QJsonArray::fromStringList(tracks);
     return self;
 }
+
+bool Album::isEmpty() {
+    return DataEntity::isEmpty() && this->artists.isEmpty() && this->tracks.isEmpty();
+}

@@ -10,6 +10,10 @@ DataEntity::DataEntity():UUID(QUuid::createUuid().toString(QUuid::WithoutBraces)
     self["metas"] = QJsonArray();
 }
 
+bool DataEntity::isEmpty() {
+    return this->metas.isEmpty();
+}
+
 DataEntity::DataEntity(QJsonObject &json) {
     self = json;
     UUID = json["uuid"].toString();

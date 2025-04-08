@@ -27,6 +27,8 @@ public:
 
     [[nodiscard]] QStringList printMeta() const;
 
+    bool isEmpty() override;
+
 protected:
     [[nodiscard]] QMap<QString, QSet<QString>> getMetas() const override; // 导出xml
 };

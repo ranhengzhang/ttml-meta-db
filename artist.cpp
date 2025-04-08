@@ -53,6 +53,10 @@ QMap<QString, QSet<QString>> Artist::getMetas() const {
     return metadata;
 }
 
+bool Artist::isEmpty() {
+    return DataEntity::isEmpty() && this->albums.isEmpty() && this->members.isEmpty();
+}
+
 void Artist::remove() {
     // 从所有专辑中删除歌手
     for (auto &album_uuid : albums) {

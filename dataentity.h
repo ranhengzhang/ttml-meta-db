@@ -33,6 +33,8 @@ protected:
     DataEntity();
 
     [[nodiscard]] virtual QMap<QString, QSet<QString>> getMetas() const = 0;
+
+    virtual bool isEmpty();
 };
 
 

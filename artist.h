@@ -26,6 +26,8 @@ public:
 
     [[nodiscard]] QJsonObject getSelf() override;
 
+    bool isEmpty() override;
+
 protected:
     [[nodiscard]]QMap<QString, QSet<QString>> getMetas() const override;
 };
