@@ -5,6 +5,7 @@
 
 #include "albumartistmodel.h"
 #include "albummodel.h"
+#include "artistmembermodel.h"
 #include "artistmodel.h"
 #include "idmodel.h"
 #include "metamodel.h"
@@ -45,6 +46,8 @@ private slots:
 
     void on_artists_list_customContextMenuRequested(const QPoint &pos);
 
+    void on_artist_members_customContextMenuRequested(const QPoint &pos);
+
     void on_artist_meta_customContextMenuRequested(const QPoint &pos);
 
     void on_albums_list_customContextMenuRequested(const QPoint &pos);
@@ -70,6 +73,10 @@ private slots:
     void onAddArtistMeta();
 
     void onDeleteArtistMeta();
+
+    void onAddArtistMember();
+
+    void onDeleteArtistMember();
 
     void onAddNewAlbum();
 
@@ -137,6 +144,8 @@ private:
     MetaModel* album_meta_model{};
 
     MetaModel* track_meta_model{};
+
+    ArtistMemberModel* artist_member_model{};
 
     AlbumArtistModel* album_artist_model{};
 

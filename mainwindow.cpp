@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 设置右键菜单代理
     ui->artists_list->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->artist_members->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->artist_meta->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->albums_list->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->album_meta->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -56,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
     artist_meta_model = new MetaModel(ui->artist_meta);
     album_meta_model = new MetaModel(ui->album_meta);
     track_meta_model = new MetaModel(ui->track_meta);
+    artist_member_model = new ArtistMemberModel(ui->artist_members);
     album_artist_model = new AlbumArtistModel(ui->album_artists);
     track_album_model = new TrackAlbumModel(ui->track_albums);
     track_feat_model = new TrackFeatModel(ui->track_feats);
@@ -68,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->artist_meta->setModel(artist_meta_model);
     ui->album_meta->setModel(album_meta_model);
     ui->track_meta->setModel(track_meta_model);
+    ui->artist_members->setModel(artist_member_model);
     ui->album_artists->setModel(album_artist_model);
     ui->track_albums->setModel(track_album_model);
     ui->track_feats->setModel(track_feat_model);
@@ -305,8 +308,13 @@ void MainWindow::on_artists_list_clicked(const QModelIndex &index) const {
     // 获取歌手UUID
     const auto artist_uuid = artist_list_model->getArtistByRow(row);
 
+    auto &artist = DataBase::artists[artist_uuid];
+
     // 刷新歌手名列表
-    artist_meta_model->setEntity(&DataBase::artists[artist_uuid]);
+    artist_meta_model->setEntity(&artist);
+
+    // 刷新成员列表
+    artist_member_model->setFamily(&artist.members, artist_uuid);
 }
 
 void MainWindow::on_albums_list_clicked(const QModelIndex &index) const {
@@ -372,6 +380,30 @@ void MainWindow::on_artists_list_customContextMenuRequested(const QPoint &pos) {
     connect(addAction, &QAction::triggered, this, &MainWindow::onAddArtist);
 
     menu.exec(ui->artists_list->viewport()->mapToGlobal(pos));
+}
+
+void MainWindow::on_artist_members_customContextMenuRequested(const QPoint &pos) {
+    if (!ui->artist_members->model()) {
+        return;
+    }
+
+    QMenu menu;
+
+    // 获取当前点击位置的索引
+    const QModelIndex index = ui->artist_members->indexAt(pos);
+    if (index.isValid()) {
+        // 确保右键点击的项被选中
+        ui->artist_members->selectionModel()->select(index, QItemSelectionModel::Select);
+
+        const QAction *deleteAction = menu.addAction("删除乐队成员");
+        connect(deleteAction, &QAction::triggered, this, &MainWindow::onDeleteArtistMember);
+    }
+
+    // 始终显示添加选项
+    const QAction *addAction = menu.addAction("添加乐队成员");
+    connect(addAction, &QAction::triggered, this, &MainWindow::onAddArtistMember);
+
+    menu.exec(ui->artist_members->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::on_artist_meta_customContextMenuRequested(const QPoint &pos) {
@@ -702,6 +734,55 @@ void MainWindow::onDeleteArtistMeta() {
         // 获取模型并删除数据
         const int row = selected.first().row(); // 获取行号
         artist_meta_model->removeMeta(row);
+    }
+}
+
+void MainWindow::onAddArtistMember() {
+    auto artists = DataBase::artists.keys();
+    QStringList messages{};
+    for (auto &artist_uuid: artists) {
+        auto &artist = DataBase::artists[artist_uuid];
+        messages.append(QString("%1 [%2]").arg(artist.getName()).arg(artist_uuid));
+    }
+
+    bool ok = false;
+    const QString item = QInputDialog::getItem(
+        this,
+        "选择已有歌手",
+        "歌手名 - 歌手ID",
+        messages,
+        0,
+        false,
+        &ok
+    );
+    if (ok && !item.isEmpty()) {
+        if (!artist_member_model->addData(artists[messages.indexOf(item)])) {
+            QMessageBox::warning(this, "错误", "歌手已添加或无效！");
+        }
+    }
+    else {
+        QMessageBox::critical(this, "撤回", "用户取消选择");
+    }
+}
+
+void MainWindow::onDeleteArtistMember() {
+    // 获取当前选中项
+    QModelIndexList selected = ui->artist_members->selectionModel()->selectedIndexes();
+    if (selected.isEmpty()) return;
+
+    // 弹出确认对话框
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(
+        this,
+        "确认删除",
+        "确定要删除此项吗？",
+        QMessageBox::Yes | QMessageBox::No
+    );
+
+    if (reply == QMessageBox::Yes) {
+        // 获取模型并删除数据
+        const int row = selected.first().row(); // 获取行号
+        artist_member_model->removeData(row);
     }
 }
 

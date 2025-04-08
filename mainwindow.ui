@@ -20,18 +20,25 @@
     </font>
    </property>
    <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>打开Github页面：&lt;a href=&quot;https://github.com/ranhengzhang/ttml-meta-db&quot;&gt;ranhengzhang/ttml-meta-db&lt;/a&gt;</string>
+      </property>
+     </widget>
+    </item>
     <item row="1" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="artists">
        <attribute name="title">
         <string>Artists</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_5">
+       <layout class="QGridLayout" name="gridLayout_15">
         <item row="0" column="0">
-         <widget class="QSplitter" name="splitter">
+         <widget class="QSplitter" name="splitter_8">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -64,30 +71,67 @@
             </item>
            </layout>
           </widget>
-          <widget class="QGroupBox" name="groupBox_2">
-           <property name="title">
-            <string>歌手名称</string>
+          <widget class="QSplitter" name="splitter">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
            </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_4">
-            <property name="leftMargin">
-             <number>0</number>
+           <widget class="QGroupBox" name="groupBox_11">
+            <property name="title">
+             <string>乐队成员</string>
             </property>
-            <property name="topMargin">
-             <number>0</number>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
-            <property name="rightMargin">
-             <number>0</number>
+            <layout class="QGridLayout" name="gridLayout_5">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <item row="0" column="0">
+              <widget class="QListView" name="artist_members">
+               <property name="editTriggers">
+                <set>QAbstractItemView::NoEditTriggers</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QGroupBox" name="groupBox_2">
+            <property name="title">
+             <string>歌手名称</string>
             </property>
-            <property name="bottomMargin">
-             <number>0</number>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
-            <item row="0" column="0">
-             <widget class="QListView" name="artist_meta"/>
-            </item>
-           </layout>
+            <layout class="QGridLayout" name="gridLayout_4">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item row="0" column="0">
+              <widget class="QListView" name="artist_meta"/>
+             </item>
+            </layout>
+           </widget>
           </widget>
          </widget>
         </item>
@@ -373,13 +417,6 @@
         </item>
        </layout>
       </widget>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>打开Github页面：&lt;a href=&quot;https://github.com/ranhengzhang/ttml-meta-db&quot;&gt;ranhengzhang/ttml-meta-db&lt;/a&gt;</string>
-      </property>
      </widget>
     </item>
    </layout>

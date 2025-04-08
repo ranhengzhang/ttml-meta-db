@@ -41,6 +41,8 @@ set(PROJECT_SOURCES
         albummodel.h
         trackmodel.cpp
         trackmodel.h
+        artistmembermodel.cpp
+        artistmembermodel.h
         albumartistmodel.cpp
         albumartistmodel.h
         trackalbummodel.cpp

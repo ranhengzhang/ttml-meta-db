@@ -20,6 +20,8 @@ public:
 
     QList<QString> albums{};
 
+    QList<QString> members{};
+
     void remove();
 
     [[nodiscard]] QJsonObject getSelf() override;
