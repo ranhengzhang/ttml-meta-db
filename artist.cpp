@@ -89,5 +89,6 @@ void Artist::remove() {
 QJsonObject Artist::getSelf() {
     setSelf();
     self["albums"] = QJsonArray::fromStringList(albums);
+    self["members"] = QJsonArray::fromStringList(members);
     return self;
 }
