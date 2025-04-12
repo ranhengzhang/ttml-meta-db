@@ -262,19 +262,15 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
 
             // 查找目标字符串
             const auto targetIndex = content.indexOf(R"(subtit)");
-            if (targetIndex < 0) {
-                *ok = false;
-                return {};
-            }
+                if (targetIndex >= 0) {
 
-            // 正则匹配
-            const QRegularExpression find(R"((?<=\"\>\n).*?(?=\n))");
-            const auto subtitle = find.match(content, targetIndex);
-            if (!subtitle.hasMatch()) {
-                *ok = false;
-                return {};
+                // 正则匹配
+                const QRegularExpression find(R"((?<=\"\>\n).*?(?=\n))");
+                const auto subtitle = find.match(content, targetIndex);
+                if (subtitle.hasMatch()) {
+                    emit emitter->subtitleGot(subtitle.captured(0));
+                }
             }
-            emit emitter->subtitleGot(subtitle.captured(0));
 
             value = match.captured(0);
         }
