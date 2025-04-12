@@ -1178,6 +1178,7 @@ void MainWindow::onAddID() {
         value = IDModel::analyseId(key, value, &ok);
         if (!ok) {
             QMessageBox::warning(this, "错误", "ID格式或程序错误！");
+            return;
         }
 
         if (!id_model->addData(key, value)) {
