@@ -6,7 +6,7 @@
 
 #include <QMessageBox>
 
-MetaModel::MetaModel(QObject *parent): QAbstractListModel(parent) {
+MetaModel::MetaModel(QObject *parent) : QAbstractListModel(parent) {
     view = dynamic_cast<QWidget *>(parent);
 }
 

@@ -10,14 +10,13 @@ QString IDDialog::NCM2 = "163cn.tv";
 
 QString IDDialog::QQ = "y.qq.com";
 
-QString IDDialog::SPF = "open.spotify.com";
+QString IDDialog::SPF1 = "open.spotify.com";
+QString IDDialog::SPF2 = "spotify:";
 
 QString IDDialog::AM = "music.apple.com";
 
-IDDialog::IDDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::IDDialog)
-{
+IDDialog::IDDialog(QWidget *parent) : QDialog(parent),
+                                      ui(new Ui::IDDialog) {
     ui->setupUi(this);
 
     const QClipboard *clipboard = QApplication::clipboard();
@@ -26,8 +25,7 @@ IDDialog::IDDialog(QWidget *parent) :
     ui->lineEdit->setFocus();
 }
 
-IDDialog::~IDDialog()
-{
+IDDialog::~IDDialog() {
     delete ui;
 }
 
@@ -53,8 +51,8 @@ void IDDialog::on_lineEdit_textChanged(const QString &arg1) const {
         ui->comboBox->setCurrentText("ncmMusicId");
     } else if (arg1.contains(IDDialog::QQ)) {
         ui->comboBox->setCurrentText("qqMusicId");
-    } else if (arg1.contains(IDDialog::SPF)) {
-        ui->comboBox->setCurrentText("spotifyMusicId");
+    } else if (arg1.contains(IDDialog::SPF1) || arg1.contains(IDDialog::SPF2)) {
+        ui->comboBox->setCurrentText("spotifyId");
     } else if (arg1.contains(IDDialog::AM)) {
         ui->comboBox->setCurrentText("appleMusicId");
     }

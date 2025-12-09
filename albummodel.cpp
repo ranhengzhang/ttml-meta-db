@@ -10,7 +10,7 @@
 
 #include "artist.h"
 
-AlbumModel::AlbumModel(QObject *parent): QAbstractListModel(parent) {
+AlbumModel::AlbumModel(QObject *parent) : QAbstractListModel(parent) {
     window = dynamic_cast<QWidget *>(parent);
 }
 
@@ -74,7 +74,7 @@ bool AlbumModel::addNewData(const QString &name) {
  * @param album_uuid 已有专辑 UUID
  * @return 添加成功/失败
  */
-bool AlbumModel::addOldData(const QString& album_uuid) {
+bool AlbumModel::addOldData(const QString &album_uuid) {
     if (DataBase::albums.contains(album_uuid)) {
         auto &artist = DataBase::artists[artist_uuid];
         if (artist.albums.contains(album_uuid)) {
@@ -117,7 +117,7 @@ bool AlbumModel::removeAlbumFromArtist(const int row) {
  * 设置当前的歌手并列出所有专辑
  * @param artist_uuid 歌手 UUID
  */
-void AlbumModel::setArtist(const QString& artist_uuid) {
+void AlbumModel::setArtist(const QString &artist_uuid) {
     beginResetModel();
     this->artist_uuid = artist_uuid;
 
@@ -136,7 +136,7 @@ void AlbumModel::setArtist(const QString& artist_uuid) {
 void AlbumModel::refreshAll() {
     beginResetModel(); // 通知视图数据即将全部重置
     albums = DataBase::artists.contains(artist_uuid) ? DataBase::artists[artist_uuid].albums : QList<QString>{};
-    endResetModel();   // 通知视图数据重置完成
+    endResetModel(); // 通知视图数据重置完成
 }
 
 /**

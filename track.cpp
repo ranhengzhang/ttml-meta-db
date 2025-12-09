@@ -11,10 +11,10 @@ Track::Track() {
     self["albums"] = QJsonArray();
 }
 
-Track::Track(QJsonObject json):DataEntity(json) {
+Track::Track(QJsonObject json) : DataEntity(json) {
     if (json.contains("albums") && json["albums"].isArray()) {
         auto albumsList = json["albums"].toArray();
-        for (auto album:albumsList) {
+        for (auto album: albumsList) {
             albums.append(album.toString());
         }
     } else {
@@ -22,7 +22,7 @@ Track::Track(QJsonObject json):DataEntity(json) {
     }
     if (json.contains("feats") && json["feats"].isArray()) {
         auto featList = json["feats"].toArray();
-        for (auto feat:featList) {
+        for (auto feat: featList) {
             feats.append(feat.toString());
         }
     } else {
@@ -30,36 +30,50 @@ Track::Track(QJsonObject json):DataEntity(json) {
     }
     if (json.contains("ids") && json["ids"].isArray()) {
         auto idList = json["ids"].toArray();
-        for (auto pair:idList) {
+        for (auto pair: idList) {
             auto id = pair.toObject();
             ids.append({id["key"].toString(), id["value"].toString()});
         }
     } else {
         self["ids"] = QJsonArray();
     }
+    if (json.contains("extras") && json["extras"].isArray()) {
+        auto extList = json["extras"].toArray();
+        for (auto pair: extList) {
+            auto ext = pair.toObject();
+            extras.append({ext["key"].toString(), ext["value"].toString()});
+        }
+    } else {
+        self["extras"] = QJsonArray();
+    }
 }
 
-QMap<QString, QSet<QString>> Track::getMetas() const {
-    QMap<QString, QSet<QString>> metadata{};
+QMap<QString, QSet<QString> > Track::getMetas() const {
+    QMap<QString, QSet<QString> > metadata{};
 
     // 添加歌曲名
-    for (auto &meta:metas) {
+    for (auto &meta: metas) {
         metadata["musicName"].insert(meta);
     }
 
     // 添加ID
-    for (const auto&id: ids) {
+    for (const auto &id: ids) {
         metadata[id[0]].insert(id[1]);
     }
 
+    // 添加额外信息
+    for (const auto &ext: extras) {
+        metadata[ext[0]].insert(ext[1]);
+    }
+
     // 添加合作歌手
-    for (const auto& uuid: feats) {
+    for (const auto &uuid: feats) {
         auto feat = DataBase::artists[uuid];
         metadata["artists"].unite(feat.getMetas()["artists"]);
     }
 
     // 合并专辑信息
-    for (const auto& uuid : albums) {
+    for (const auto &uuid: albums) {
         auto album = DataBase::albums[uuid];
         auto info = album.getMetas();
 
@@ -74,7 +88,7 @@ QMap<QString, QSet<QString>> Track::getMetas() const {
  * 从当前专辑删除单曲
  * @param album_uuid 专辑 UUID
  */
-void Track::removeFromAlbum(const QString& album_uuid) {
+void Track::removeFromAlbum(const QString &album_uuid) {
     albums.removeAll(album_uuid);
     if (albums.isEmpty())
         DataBase::tracks.remove(UUID);
@@ -93,8 +107,19 @@ QJsonObject Track::getSelf() {
         idsArray.append(obj);
     }
     self["ids"] = idsArray;
+
+    QJsonArray extArray;
+    for (auto &ext: extras) {
+        QJsonObject obj;
+        obj["key"] = ext[0];
+        obj["value"] = ext[1];
+        extArray.append(obj);
+    }
+    self["extras"] = extArray;
+
     return self;
 }
+
 
 /**
  * 获取当前歌曲包含的元数据，排序后返回
@@ -104,9 +129,11 @@ QJsonObject Track::getSelf() {
  * @return xml 格式并且排序好的元数据
  */
 QStringList Track::printMeta() const {
-    auto xml = this->getMetas();
-    QStringList metas{};
-    const QStringList keys = { // ID 顺序
+    const auto xml = this->getMetas();
+    QStringList preMeta{};
+    QStringList extMeta{};
+    const QStringList keys = {
+        // ID 顺序
         "musicName",
         "artists",
         "album",
@@ -117,13 +144,19 @@ QStringList Track::printMeta() const {
         "isrc"
     };
 
-    for (auto &key : keys) {
-        for (auto &value: xml[key]) {
-            metas.append(QString(R"(<amll:meta key="%1" value="%2" />)").arg(key).arg(value));
-        }
-    }
+    for (auto &key: keys)
+        for (auto &value: xml[key])
+            preMeta.append(
+                QString(R"(<amll:meta key="%1" value="%2" />)").arg(key.toHtmlEscaped()).arg(value.toHtmlEscaped()));
 
-    return metas;
+    for (auto &[key, values]: xml.toStdMap())
+        if (!keys.contains(key))
+            for (auto &value: values)
+                extMeta.append(
+                    QString(R"(<amll:meta key="%1" value="%2" />)").arg(key.toHtmlEscaped()).arg(
+                        value.toHtmlEscaped()));
+
+    return preMeta + extMeta;
 }
 
 bool Track::isEmpty() {

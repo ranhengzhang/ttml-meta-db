@@ -2,14 +2,15 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSettings>
 
 #include "albumartistmodel.h"
 #include "albummodel.h"
 #include "artistmembermodel.h"
 #include "artistmodel.h"
+#include "extramodel.h"
 #include "idmodel.h"
 #include "metamodel.h"
-#include "track.h"
 #include "trackalbummodel.h"
 #include "trackfeatmodel.h"
 #include "trackmodel.h"
@@ -26,7 +27,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_splitter_4_splitterMoved(int pos, int index);
+    void on_splitter_7_splitterMoved(int pos, int index);
 
     void on_splitter_6_splitterMoved(int pos, int index);
 
@@ -35,6 +36,8 @@ private slots:
     void on_actionSave_triggered();
 
     void on_actionSaveAs_triggered();
+
+    void on_actionCookie_triggered();
 
     void on_tabWidget_currentChanged(int index) const;
 
@@ -65,6 +68,8 @@ private slots:
     void on_track_feats_customContextMenuRequested(const QPoint &pos);
 
     void on_track_id_customContextMenuRequested(const QPoint &pos);
+
+    void on_extra_meta_customContextMenuRequested(const QPoint &pos);
 
     void onAddArtist();
 
@@ -112,6 +117,8 @@ private slots:
 
     void onAddID();
 
+    void onAddExtra();
+
     void on_copy_meta_clicked();
 
 protected:
@@ -122,8 +129,11 @@ private:
     QString filePath{};
     static constexpr int HOTKEY_ID = 1;
     HWND hWnd{};
+    QSettings config{"settings.ini", QSettings::IniFormat};
 
-    void saveFile() const;
+    void openFile(const QString &openFilePath);
+
+    void saveFile();
 
     void showToast(const QString &name);
 
@@ -154,5 +164,7 @@ private:
     TrackFeatModel* track_feat_model{};
 
     IDModel* id_model{};
+
+    ExtraModel* extra_model{};
 };
 #endif // MAINWINDOW_H

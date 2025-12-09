@@ -13,19 +13,19 @@ Artist::Artist() {
     self["albums"] = QJsonArray();
 }
 
-Artist::Artist(QJsonObject json): DataEntity(json) {
+Artist::Artist(QJsonObject json) : DataEntity(json) {
     if (json.contains("albums") && json["albums"].isArray()) {
         auto albumList = json["albums"].toArray();
-        for (auto album:albumList) {
+        for (auto album: albumList) {
             albums.append(album.toString());
         }
     } else {
-       self["albums"] = QJsonArray();
+        self["albums"] = QJsonArray();
     }
 
     if (json.contains("members") && json["members"].isArray()) {
         auto artistList = json["members"].toArray();
-        for (auto artist :artistList) {
+        for (auto artist: artistList) {
             members.append(artist.toString());
         }
     } else {
@@ -42,12 +42,17 @@ Artist::Artist(QJsonObject json): DataEntity(json) {
  * \endcode
  * @return 元数据 map
  */
-QMap<QString, QSet<QString>> Artist::getMetas() const {
-    QMap<QString, QSet<QString>> metadata{};
+QMap<QString, QSet<QString> > Artist::getMetas() const {
+    QMap<QString, QSet<QString> > metadata{};
 
     // 添加歌手名
-    for (auto &meta:metas) {
+    for (auto &meta: metas) {
         metadata["artists"].insert(meta);
+    }
+
+    // 合并成员信息
+    for (auto &member: members) {
+        metadata["artists"].unite(DataBase::artists[member].getMetas()["artists"]);
     }
 
     return metadata;
@@ -59,14 +64,14 @@ bool Artist::isEmpty() {
 
 void Artist::remove() {
     // 从所有专辑中删除歌手
-    for (auto &album_uuid : albums) {
+    for (auto &album_uuid: albums) {
         auto &album = DataBase::albums[album_uuid];
         album.removeFromArtist(UUID);
     }
 
     // 从所有单曲的 feat 中删除歌手
     const auto trackList = DataBase::tracks.keys();
-    for (auto &track_uuid : trackList) {
+    for (auto &track_uuid: trackList) {
         auto &track = DataBase::tracks[track_uuid];
         if (track.feats.contains(UUID)) {
             track.feats.removeAll(this->UUID);
@@ -75,7 +80,7 @@ void Artist::remove() {
 
     // 从所有组合的 member 中删除歌手
     const auto artistList = DataBase::artists.keys();
-    for (auto &artist_uuid : artistList) {
+    for (auto &artist_uuid: artistList) {
         auto &artist = DataBase::artists[artist_uuid];
         if (artist.members.contains(UUID)) {
             artist.members.removeAll(this->UUID);

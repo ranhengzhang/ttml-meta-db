@@ -19,6 +19,7 @@
 #include "iddelegate.h"
 #include "iddialog.h"
 #include "idmodel.h"
+#include "metadialog.h"
 #include "trackalbummodel.h"
 #include "trackfeatmodel.h"
 #include "trackmodel.h"
@@ -49,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->track_albums->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->track_feats->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->track_id->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->extra_meta->setContextMenuPolicy(Qt::CustomContextMenu);
 
     // 初始化 model
     artist_list_model = new ArtistModel(ui->artists_list);
@@ -62,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
     track_album_model = new TrackAlbumModel(ui->track_albums);
     track_feat_model = new TrackFeatModel(ui->track_feats);
     id_model = new IDModel(ui->track_id);
+    extra_model = new ExtraModel(ui->extra_meta);
 
     // 设置 model
     ui->artists_list->setModel(artist_list_model);
@@ -75,6 +78,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->track_albums->setModel(track_album_model);
     ui->track_feats->setModel(track_feat_model);
     ui->track_id->setModel(id_model);
+    ui->extra_meta->setModel(extra_model);
 
     // 自动保存
     timer = new QTimer(this);
@@ -97,9 +101,16 @@ MainWindow::MainWindow(QWidget *parent)
 
     auto *shortcut = new QShortcut(QKeySequence("Ctrl+S"), this);
     connect(shortcut, &QShortcut::activated, this, &MainWindow::on_actionSave_triggered);
-    connect(IDModel::emitter, &IDModel::subtitleGot, this, [this](QString name) {
+    connect(IDModel::emitter, &IDModel::subtitleGot, this, [this](const QString &name) {
         track_meta_model->addData(name);
     });
+    connect(IDModel::emitter, &IDModel::idGot, this, [this](const QString &platform, const QString &name) {
+        id_model->addData(platform, name);
+    });
+
+    if (config.contains("lastFile")) {
+        openFile(config.value("lastFile").toString());
+    }
 }
 
 MainWindow::~MainWindow() {
@@ -107,18 +118,18 @@ MainWindow::~MainWindow() {
     delete IDModel::emitter;
 }
 
-void MainWindow::on_splitter_4_splitterMoved(int pos, int index) {
+void MainWindow::on_splitter_7_splitterMoved(int pos, int index) {
     if (moved) return;
     moved = true;
 
     // 计算splitterB的比例并应用到splitterA
-    QList<int> sizes4 = ui->splitter_4->sizes();
-    const int total4 = ui->splitter_4->width();
-    if (total4 > 0) {
+    QList<int> sizes7 = ui->splitter_7->sizes();
+    const int total7 = ui->splitter_7->width();
+    if (total7 > 0) {
         const int total6 = ui->splitter_6->width();
         QList<int> newSizes6;
-        for (const int size: sizes4) {
-            newSizes6.append(size * total6 / total4);
+        for (const int size: sizes7) {
+            newSizes6.append(size * total6 / total7);
         }
         ui->splitter_6->setSizes(newSizes6);
     }
@@ -134,12 +145,12 @@ void MainWindow::on_splitter_6_splitterMoved(int pos, int index) {
     QList<int> sizes6 = ui->splitter_6->sizes();
     const int total6 = ui->splitter_6->width();
     if (total6 > 0) {
-        const int total4 = ui->splitter_4->width();
-        QList<int> newSizes4;
+        const int total7 = ui->splitter_7->width();
+        QList<int> newSizes7;
         for (const int size: sizes6) {
-            newSizes4.append(size * total4 / total6);
+            newSizes7.append(size * total7 / total6);
         }
-        ui->splitter_4->setSizes(newSizes4);
+        ui->splitter_7->setSizes(newSizes7);
     }
 
     moved = false;
@@ -152,81 +163,7 @@ void MainWindow::on_splitter_6_splitterMoved(int pos, int index) {
 void MainWindow::on_actionOpen_triggered() {
     const QString openPath = QFileDialog::getOpenFileName(this, "打开元数据库文件", "", "TTML元数据库 (*.metadb)");
 
-    if (openPath.isEmpty()) {
-        QMessageBox::information(this, "", "用户取消打开文件", QMessageBox::Ok);
-        return;
-    } else {
-        filePath = openPath;
-        // 打开文件并读取内容
-        QFile file(filePath);
-        if (!file.open(QIODevice::ReadOnly)) {
-            qDebug() << "Failed to open file!";
-            return;
-        }
-
-        // 读取压缩文件内容
-        const QByteArray jsonData = file.readAll();
-        file.close();
-
-        // 尝试解析 JSON 数据
-        const QJsonDocument document = QJsonDocument::fromJson(jsonData);
-
-        if (document.isNull()) {
-            qDebug() << "Failed to parse JSON.";
-            return;
-        }
-
-        // 获取 JSON 对象
-        if (!document.isObject()) {
-            qDebug() << "The JSON is not an object.";
-            return;
-        }
-
-        // 获取 JSON 对象
-        if (document.isObject()) {
-            QJsonObject jsonObject = document.object();
-
-            // 处理第一个数组
-            DataBase::artists.clear();
-            if (jsonObject.contains("artists") && jsonObject["artists"].isArray()) {
-                QJsonArray artists_json = jsonObject["artists"].toArray();
-                for (const QJsonValue artist: artists_json) {
-                    const QJsonObject item = artist.toObject();
-                    Artist new_artist(item);
-                    DataBase::artists.insert(new_artist.getUUID(), new_artist);
-                }
-            }
-
-            // 处理第二个数组
-            DataBase::albums.clear();
-            if (jsonObject.contains("albums") && jsonObject["albums"].isArray()) {
-                QJsonArray albums_json = jsonObject["albums"].toArray();
-                for (const QJsonValue value: albums_json) {
-                    const QJsonObject item = value.toObject();
-                    Album new_album(item);
-                    DataBase::albums.insert(new_album.getUUID(), new_album);
-                }
-            }
-
-            // 处理第三个数组
-            DataBase::tracks.clear();
-            if (jsonObject.contains("tracks") && jsonObject["tracks"].isArray()) {
-                QJsonArray tracks_json = jsonObject["tracks"].toArray();
-                for (const QJsonValue value: tracks_json) {
-                    const QJsonObject item = value.toObject();
-                    Track new_track(item);
-                    DataBase::tracks.insert(new_track.getUUID(), new_track);
-                }
-            }
-
-            artist_list_model->refreshAll();
-
-            ui->statusbar->showMessage("导入成功");
-            ui->tabWidget->setCurrentIndex(0);
-        } else {
-            qDebug() << "The JSON is not an object.";
-        }
-    }
+    openFile(openPath);
 }
 
 /**
@@ -259,6 +196,29 @@ void MainWindow::on_actionSaveAs_triggered() {
     saveFile();
 }
 
+void MainWindow::on_actionCookie_triggered() {
+    // 1. 弹出输入对话框[citation:8]
+    bool ok;
+    const QString cookieText = QInputDialog::getText(nullptr, // 父窗口
+                                                     tr("输入Cookie"), // 标题
+                                                     tr("请输入Cookie值:"), // 标签
+                                                     QLineEdit::Normal, // 输入模式
+                                                     config.contains("qqMusicCookie")
+                                                         ? config.value("qqMusicCookie").toString()
+                                                         : "", // 默认文本
+                                                     &ok); // 用户是否点击了OK
+
+    // 2. 判断：如果用户点击OK且输入非空，则存储
+    if (ok and not cookieText.trimmed().isEmpty()) {
+        config.setValue("qqMusicCookie", cookieText.trimmed());
+        QMessageBox::information(nullptr, tr("成功"), tr("Cookie已保存。"));
+    } else if (ok) {
+        // 用户点击OK但输入为空
+        QMessageBox::warning(nullptr, tr("输入为空"), tr("未输入任何内容，Cookie未保存。"));
+    }
+    // 用户点击Cancel则什么都不做
+}
+
 /**
  * 懒加载页面
  * @param index 选中标签页的 index
@@ -286,6 +246,7 @@ void MainWindow::on_tabWidget_currentChanged(const int index) const {
             track_feat_model->clean();
             track_meta_model->clean();
             id_model->clean();
+            extra_model->clean();
         } else {
             const auto album_uuid = album_list_model->getAlbumByRow(selected_album.first().row());
             if (album_uuid != track_list_model->getAlbum()) {
@@ -294,6 +255,7 @@ void MainWindow::on_tabWidget_currentChanged(const int index) const {
                 track_feat_model->clean();
                 track_meta_model->clean();
                 id_model->clean();
+                extra_model->clean();
             }
         }
     }
@@ -358,6 +320,9 @@ void MainWindow::on_tracks_list_clicked(const QModelIndex &index) const {
     id_model->setFamily(&DataBase::tracks[track_uuid].ids, track_uuid);
     ui->track_id->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     ui->track_id->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+
+    // 刷新额外信息列表
+    extra_model->setFamily(&DataBase::tracks[track_uuid].extras, track_uuid);
 }
 
 void MainWindow::on_artists_list_customContextMenuRequested(const QPoint &pos) {
@@ -653,6 +618,34 @@ void MainWindow::on_track_id_customContextMenuRequested(const QPoint &pos) {
     menu.exec(ui->track_id->viewport()->mapToGlobal(pos));
 }
 
+void MainWindow::on_extra_meta_customContextMenuRequested(const QPoint &pos) {
+    auto *model = qobject_cast<ExtraModel *>(ui->extra_meta->model());
+    if (!model || !model->isActive()) {
+        return;
+    }
+
+    QMenu menu;
+
+    // 获取当前点击位置的索引
+    const QModelIndex index = ui->extra_meta->indexAt(pos);
+
+    // 如果点击的是有效项，添加删除选项
+    if (index.isValid()) {
+        // 确保右键点击的项被选中
+        ui->extra_meta->selectionModel()->select(index, QItemSelectionModel::Select);
+
+        const QAction *deleteAction = menu.addAction("删除ID");
+        connect(deleteAction, &QAction::triggered, this, [this, index, model]() {
+            model->removeRow(index.row());
+        });
+    }
+
+    const QAction *addAction = menu.addAction("添加新行");
+    connect(addAction, &QAction::triggered, this, &MainWindow::onAddExtra);
+
+    menu.exec(ui->extra_meta->viewport()->mapToGlobal(pos));
+}
+
 // 添加歌手到列表
 void MainWindow::onAddArtist() {
     bool ok;
@@ -759,8 +752,7 @@ void MainWindow::onAddArtistMember() {
         if (!artist_member_model->addData(artists[messages.indexOf(item)])) {
             QMessageBox::warning(this, "错误", "歌手已添加或无效！");
         }
-    }
-    else {
+    } else {
         QMessageBox::critical(this, "撤回", "用户取消选择");
     }
 }
@@ -1183,6 +1175,7 @@ void MainWindow::onAddID() {
 
         if (!id_model->addData(key, value)) {
             QMessageBox::warning(this, "错误", "ID已添加或无效！");
+            return;
         }
         // 添加成功时滚动到底部
         const QModelIndex lastIndex = id_model->index(id_model->rowCount(QModelIndex()) - 1, 0);
@@ -1195,12 +1188,33 @@ void MainWindow::onAddID() {
     }
 }
 
+void MainWindow::onAddExtra() {
+    MetaDialog dialog(this);
+
+    dialog.setWindowTitle("添加扩展数据");
+    dialog.setWindowIcon(QIcon(":/res/favicon.ico"));
+    if (dialog.exec() == QDialog::Accepted) {
+        const auto key = dialog.getKeyText();
+        auto value = dialog.getValueText();
+
+        if (!extra_model->addData(key, value)) {
+            QMessageBox::warning(this, "错误", "ID已添加或无效！");
+            return;
+        }
+        // 添加成功时滚动到底部
+        const QModelIndex lastIndex = extra_model->index(extra_model->rowCount(QModelIndex()) - 1, 0);
+        ui->track_id->scrollTo(lastIndex, QAbstractItemView::PositionAtBottom);
+    } else {
+        QMessageBox::critical(this, "撤回", "用户取消输入");
+    }
+}
+
 void MainWindow::on_copy_meta_clicked() {
     if (track_list_model->isActive()) {
         // 选中时才复制
         auto selected = ui->tracks_list->selectionModel()->selectedRows();
         const auto track_uuid = track_list_model->getTrackByRow(selected.first().row());
-        auto &track = DataBase::tracks[track_uuid];
+        const auto &track = DataBase::tracks[track_uuid];
         const auto xml = track.printMeta().join("");
         QClipboard *clipboard = QApplication::clipboard();
         clipboard->setText(xml);
@@ -1243,25 +1257,90 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     event->accept(); // 接受关闭事件
 }
 
-/**
- * 显示 wintoast 弹窗
- * @param name 单曲名
- */
-void MainWindow::showToast(const QString &name) {
-    auto templ = WinToastTemplate(WinToastTemplate::Text02);
-    templ.setTextField(name.toStdWString(), WinToastTemplate::FirstLine);
-    templ.setTextField(L"元数据已复制到剪贴板", WinToastTemplate::SecondLine);
-    templ.setExpiration(10000);
+void MainWindow::openFile(const QString &openFilePath) {
+    if (openFilePath.isEmpty()) {
+        QMessageBox::information(this, "", "用户取消打开文件", QMessageBox::Ok);
+        return;
+    } else {
+        // 打开文件并读取内容
+        filePath = openFilePath;
+        QFile file(filePath);
+        if (!file.open(QIODevice::ReadOnly)) {
+            qDebug() << "Failed to open file!";
+            return;
+        }
 
-    if (WinToast::instance()->showToast(templ, new CustomHandler()) < 0) {
-        QMessageBox::warning(this, "Error", "Could not launch your toast notification!");
+        // 读取压缩文件内容
+        const QByteArray jsonData = file.readAll();
+        file.close();
+
+        // 尝试解析 JSON 数据
+        const QJsonDocument document = QJsonDocument::fromJson(jsonData);
+
+        if (document.isNull()) {
+            qDebug() << "Failed to parse JSON.";
+            return;
+        }
+
+        // 获取 JSON 对象
+        if (!document.isObject()) {
+            qDebug() << "The JSON is not an object.";
+            return;
+        }
+
+        config.setValue("lastFile", openFilePath);
+
+        // 获取 JSON 对象
+        if (document.isObject()) {
+            QJsonObject jsonObject = document.object();
+
+            // 处理第一个数组
+            DataBase::artists.clear();
+            if (jsonObject.contains("artists") && jsonObject["artists"].isArray()) {
+                QJsonArray artists_json = jsonObject["artists"].toArray();
+                for (const QJsonValue artist: artists_json) {
+                    const QJsonObject item = artist.toObject();
+                    Artist new_artist(item);
+                    DataBase::artists.insert(new_artist.getUUID(), new_artist);
+                }
+            }
+
+            // 处理第二个数组
+            DataBase::albums.clear();
+            if (jsonObject.contains("albums") && jsonObject["albums"].isArray()) {
+                QJsonArray albums_json = jsonObject["albums"].toArray();
+                for (const QJsonValue value: albums_json) {
+                    const QJsonObject item = value.toObject();
+                    Album new_album(item);
+                    DataBase::albums.insert(new_album.getUUID(), new_album);
+                }
+            }
+
+            // 处理第三个数组
+            DataBase::tracks.clear();
+            if (jsonObject.contains("tracks") && jsonObject["tracks"].isArray()) {
+                QJsonArray tracks_json = jsonObject["tracks"].toArray();
+                for (const QJsonValue value: tracks_json) {
+                    const QJsonObject item = value.toObject();
+                    Track new_track(item);
+                    DataBase::tracks.insert(new_track.getUUID(), new_track);
+                }
+            }
+
+            artist_list_model->refreshAll();
+
+            ui->statusbar->showMessage("导入成功");
+            ui->tabWidget->setCurrentIndex(0);
+        } else {
+            qDebug() << "The JSON is not an object.";
+        }
     }
 }
 
 /**
  * 保存文件
  */
-void MainWindow::saveFile() const {
+void MainWindow::saveFile() {
     if (timer->isActive()) {
         timer->stop();
     }
@@ -1273,6 +1352,8 @@ void MainWindow::saveFile() const {
         qDebug() << "Failed to open file for writing!";
         return;
     }
+
+    config.setValue("lastFile", filePath);
 
     // 将数组转换为 QJsonArray
     QJsonArray artists_json{};
@@ -1307,4 +1388,19 @@ void MainWindow::saveFile() const {
     file.close();
 
     ui->statusbar->showMessage("导出完成");
+}
+
+/**
+ * 显示 wintoast 弹窗
+ * @param name 单曲名
+ */
+void MainWindow::showToast(const QString &name) {
+    auto templ = WinToastTemplate(WinToastTemplate::Text02);
+    templ.setTextField(name.toStdWString(), WinToastTemplate::FirstLine);
+    templ.setTextField(L"元数据已复制到剪贴板", WinToastTemplate::SecondLine);
+    templ.setExpiration(10000);
+
+    if (WinToast::instance()->showToast(templ, new CustomHandler()) < 0) {
+        QMessageBox::warning(this, "Error", "Could not launch your toast notification!");
+    }
 }

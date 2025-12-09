@@ -21,6 +21,8 @@ public:
 
     QList<QList<QString>> ids; // 歌曲ID列表
 
+    QList<QList<QString>> extras; // 元数据
+
     void removeFromAlbum(const QString& album_uuid);
 
     [[nodiscard]] QJsonObject getSelf() override;

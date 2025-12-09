@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(ttml-meta-db VERSION 0.8 LANGUAGES CXX)
+project(ttml-meta-db VERSION 0.9 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -23,36 +23,57 @@ set(PROJECT_SOURCES
         iddialog.h
         iddialog.ui
 
+        metadialog.cpp
+        metadialog.h
+        metadialog.ui
+
         artist.cpp
         artist.h
+
         album.cpp
         album.h
+
         track.cpp
         track.h
+
         dataentity.cpp
         dataentity.h
+
         database.cpp
         database.h
+
         artistmodel.cpp
         artistmodel.h
+
         metamodel.cpp
         metamodel.h
+
         albummodel.cpp
         albummodel.h
+
         trackmodel.cpp
         trackmodel.h
+
         artistmembermodel.cpp
         artistmembermodel.h
+
         albumartistmodel.cpp
         albumartistmodel.h
+
         trackalbummodel.cpp
         trackalbummodel.h
+
         trackfeatmodel.cpp
         trackfeatmodel.h
+
         idmodel.cpp
         idmodel.h
+
         iddelegate.cpp
         iddelegate.h
+
+        extramodel.cpp
+        extramodel.h
 
         wintoastlib.cpp
         wintoastlib.h

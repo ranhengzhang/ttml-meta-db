@@ -1,18 +1,16 @@
 //
-// Created by LEGION on 25-3-10.
+// Created by LEGION on 25-8-1.
 //
 
-#ifndef IDMODEL_H
-#define IDMODEL_H
+#ifndef EXTRAMODEL_H
+#define EXTRAMODEL_H
 
 #include <QTableView>
 
-#include "albumartistmodel.h"
-
-class IDModel final : public QAbstractTableModel {
+class ExtraModel : public QAbstractTableModel {
 Q_OBJECT
 public:
-    explicit IDModel(QObject *parent = nullptr);
+    explicit ExtraModel(QObject *parent = nullptr);
 
     [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
 
@@ -32,27 +30,14 @@ public:
 
     [[nodiscard]] bool isActive() const;
 
-    void setFamily(QList<QList<QString>> *id_list, const QString& track_uuid);
+    void setFamily(QList<QList<QString>> *meta_list, const QString& track_uuid);
 
     void clean();
 
-    static QStringList options();
-
     [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
-    [[nodiscard]] static QString analyseId(const QString &key, QString value, bool *ok);
-
-    static QStringList id_options;
-
-    static IDModel *emitter;
-
-signals:
-    void subtitleGot(QString subtitle);
-
-    void idGot(QString platform, QString id);
-
 private:
-    QList<QList<QString>> *ids{};
+    QList<QList<QString>> *extras{};
 
     QString track_uuid{};
 
@@ -61,4 +46,4 @@ private:
 
 
 
-#endif //IDMODEL_H
+#endif //EXTRAMODEL_H

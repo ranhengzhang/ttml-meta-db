@@ -9,7 +9,7 @@
 #include "artist.h"
 #include "database.h"
 
-ArtistModel::ArtistModel(QObject *parent): QAbstractListModel(parent) {
+ArtistModel::ArtistModel(QObject *parent) : QAbstractListModel(parent) {
     view = dynamic_cast<QWidget *>(parent);
 }
 
@@ -40,7 +40,7 @@ Qt::ItemFlags ArtistModel::flags(const QModelIndex &index) const {
  * @param name 歌手名
  * @return 添加成功/失败
  */
-bool ArtistModel::addData(const QString& name) {
+bool ArtistModel::addData(const QString &name) {
     bool exist = false;
     for (auto &artist: DataBase::artists) {
         exist |= artist.metas.contains(name);

@@ -29,7 +29,8 @@ private:
     static QString NCM1;
     static QString NCM2;
     static QString QQ;
-    static QString SPF;
+    static QString SPF1;
+    static QString SPF2;
     static QString AM;
 };
 

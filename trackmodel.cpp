@@ -8,7 +8,7 @@
 
 #include "database.h"
 
-TrackModel::TrackModel(QObject *parent): QAbstractListModel(parent) {
+TrackModel::TrackModel(QObject *parent) : QAbstractListModel(parent) {
     window = dynamic_cast<QWidget *>(parent);
 }
 
@@ -44,14 +44,14 @@ void TrackModel::setAlbum(const QString &uuid) {
     refreshAll();
 }
 
-bool TrackModel::addNewData(const QString& name) {
+bool TrackModel::addNewData(const QString &name) {
     // 获取当前专辑
     auto &album = DataBase::albums[album_uuid];
 
     // 检查专辑下同名单曲
     bool exist = false;
     for (auto &track_uuid: album.tracks) {
-        exist |= DataBase::tracks[track_uuid].metas.contains(name);
+        exist |= DataBase::tracks[track_uuid].getName() == name;
     }
     if (exist) {
         return false; // 名称已存在，插入失败
@@ -69,7 +69,7 @@ bool TrackModel::addNewData(const QString& name) {
     return true; // 插入成功
 }
 
-bool TrackModel::addOldData(const QString& uuid) {
+bool TrackModel::addOldData(const QString &uuid) {
     if (DataBase::tracks.contains(uuid)) {
         auto &album = DataBase::albums[album_uuid];
         auto &track = DataBase::tracks[uuid];
@@ -130,7 +130,7 @@ bool TrackModel::isActive() const {
 void TrackModel::refreshAll() {
     beginResetModel(); // 通知视图数据即将全部重置
     tracks = DataBase::albums.contains(album_uuid) ? DataBase::albums[album_uuid].tracks : QList<QString>{};
-    endResetModel();   // 通知视图数据重置完成
+    endResetModel(); // 通知视图数据重置完成
 }
 
 QString TrackModel::getAlbum() {
