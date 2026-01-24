@@ -32,7 +32,7 @@ protected:
 
     DataEntity();
 
-    [[nodiscard]] virtual QMap<QString, QSet<QString>> getMetas() const = 0;
+    [[nodiscard]] virtual QMap<QString, QList<QString>> getMetas() const = 0;
 
     virtual bool isEmpty();
 };

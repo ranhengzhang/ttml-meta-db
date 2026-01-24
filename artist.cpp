@@ -42,17 +42,21 @@ Artist::Artist(QJsonObject json) : DataEntity(json) {
  * \endcode
  * @return 元数据 map
  */
-QMap<QString, QSet<QString> > Artist::getMetas() const {
-    QMap<QString, QSet<QString> > metadata{};
+QMap<QString, QList<QString>> Artist::getMetas() const {
+    QMap<QString, QList<QString> > metadata{};
 
     // 添加歌手名
     for (auto &meta: metas) {
-        metadata["artists"].insert(meta);
+        metadata["artists"].push_back(meta);
     }
 
     // 合并成员信息
     for (auto &member: members) {
-        metadata["artists"].unite(DataBase::artists[member].getMetas()["artists"]);
+        for (const auto& member_name: DataBase::artists[member].getMetas()["artists"]) {
+            if (!metadata["artists"].contains(member_name)) {
+                metadata["artists"].push_back(member_name);
+            }
+        }
     }
 
     return metadata;

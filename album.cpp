@@ -46,17 +46,20 @@ Album::Album(QJsonObject json) : DataEntity(json) {
  * \endcode
  * @return 元数据 map
  */
-QMap<QString, QSet<QString> > Album::getMetas() const {
-    QMap<QString, QSet<QString> > metadata{};
+QMap<QString, QList<QString>> Album::getMetas() const {
+    QMap<QString, QList<QString> > metadata{};
 
     // 添加专辑名
-    for (auto &meta: metas) {
-        metadata["album"].insert(meta);
+    for (const auto &meta: metas) {
+        if (!metadata["album"].contains(meta))
+            metadata["album"].push_back(meta);
     }
 
     // 合并歌手信息
     for (const auto &artist: artists) {
-        metadata["artists"].unite(DataBase::artists[artist].getMetas()["artists"]);
+        for (const auto& artist_name: DataBase::artists[artist].getMetas()["artists"])
+            if (!metadata["artists"].contains(artist_name))
+                metadata["artists"].push_back(artist_name);
     }
 
     return metadata;

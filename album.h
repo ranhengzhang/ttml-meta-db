@@ -27,7 +27,7 @@ public:
     bool isEmpty() override;
 
 protected:
-    [[nodiscard]]QMap<QString, QSet<QString>> getMetas() const override;
+    [[nodiscard]] QMap<QString, QList<QString>> getMetas() const override;
 };
 
 

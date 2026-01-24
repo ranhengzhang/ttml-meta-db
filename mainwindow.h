@@ -101,6 +101,10 @@ private slots:
 
     void onAddOldTrack();
 
+    void onMoveUpTrack();
+
+    void onMoveDownTrack();
+
     void onDeleteTrack();
 
     void onAddTrackMeta();
@@ -126,45 +130,45 @@ protected:
 
 private:
     Ui::MainWindow *ui;
-    QString filePath{};
+    QString _file_path{};
     static constexpr int HOTKEY_ID = 1;
-    HWND hWnd{};
-    QSettings config{"settings.ini", QSettings::IniFormat};
+    HWND _h_wnd{};
+    QSettings _config{"settings.ini", QSettings::IniFormat};
 
-    void openFile(const QString &openFilePath);
+    void openFile(const QString &open_file_path);
 
     void saveFile();
 
     void showToast(const QString &name);
 
-    bool moved = false;
+    bool _moved = false;
 
-    int pendingRow = -1;
+    int _pending_row = -1;
 
-    QTimer *timer{};
+    QTimer *_timer{};
 
-    ArtistModel* artist_list_model{};
+    ArtistModel* _artist_list_model{};
 
-    AlbumModel* album_list_model{};
+    AlbumModel* _album_list_model{};
 
-    TrackModel* track_list_model{};
+    TrackModel* _track_list_model{};
 
-    MetaModel* artist_meta_model{};
+    MetaModel* _artist_meta_model{};
 
-    MetaModel* album_meta_model{};
+    MetaModel* _album_meta_model{};
 
-    MetaModel* track_meta_model{};
+    MetaModel* _track_meta_model{};
 
-    ArtistMemberModel* artist_member_model{};
+    ArtistMemberModel* _artist_member_model{};
 
-    AlbumArtistModel* album_artist_model{};
+    AlbumArtistModel* _album_artist_model{};
 
-    TrackAlbumModel* track_album_model{};
+    TrackAlbumModel* _track_album_model{};
 
-    TrackFeatModel* track_feat_model{};
+    TrackFeatModel* _track_feat_model{};
 
-    IDModel* id_model{};
+    IDModel* _id_model{};
 
-    ExtraModel* extra_model{};
+    ExtraModel* _extra_model{};
 };
 #endif // MAINWINDOW_H

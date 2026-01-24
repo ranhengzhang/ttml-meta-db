@@ -458,7 +458,7 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
                 //                        qDebug() << content;
                 const auto begin = content.indexOf(R"(window.__INITIAL_DATA__ =)") + 25;
                 const auto end = content.indexOf(R"(</script>)", begin);
-                if (begin != -1 and end != -1 and begin < end) {
+                if (begin != 24 and end != -1 and begin < end) {
                     const auto data = content.mid(begin, end - begin);
                     qDebug().noquote() << data;
                     // to json

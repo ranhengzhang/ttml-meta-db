@@ -53,43 +53,43 @@ MainWindow::MainWindow(QWidget *parent)
     ui->extra_meta->setContextMenuPolicy(Qt::CustomContextMenu);
 
     // 初始化 model
-    artist_list_model = new ArtistModel(ui->artists_list);
-    album_list_model = new AlbumModel(ui->albums_list);
-    track_list_model = new TrackModel(ui->tracks_list);
-    artist_meta_model = new MetaModel(ui->artist_meta);
-    album_meta_model = new MetaModel(ui->album_meta);
-    track_meta_model = new MetaModel(ui->track_meta);
-    artist_member_model = new ArtistMemberModel(ui->artist_members);
-    album_artist_model = new AlbumArtistModel(ui->album_artists);
-    track_album_model = new TrackAlbumModel(ui->track_albums);
-    track_feat_model = new TrackFeatModel(ui->track_feats);
-    id_model = new IDModel(ui->track_id);
-    extra_model = new ExtraModel(ui->extra_meta);
+    _artist_list_model = new ArtistModel(ui->artists_list);
+    _album_list_model = new AlbumModel(ui->albums_list);
+    _track_list_model = new TrackModel(ui->tracks_list);
+    _artist_meta_model = new MetaModel(ui->artist_meta);
+    _album_meta_model = new MetaModel(ui->album_meta);
+    _track_meta_model = new MetaModel(ui->track_meta);
+    _artist_member_model = new ArtistMemberModel(ui->artist_members);
+    _album_artist_model = new AlbumArtistModel(ui->album_artists);
+    _track_album_model = new TrackAlbumModel(ui->track_albums);
+    _track_feat_model = new TrackFeatModel(ui->track_feats);
+    _id_model = new IDModel(ui->track_id);
+    _extra_model = new ExtraModel(ui->extra_meta);
 
     // 设置 model
-    ui->artists_list->setModel(artist_list_model);
-    ui->albums_list->setModel(album_list_model);
-    ui->tracks_list->setModel(track_list_model);
-    ui->artist_meta->setModel(artist_meta_model);
-    ui->album_meta->setModel(album_meta_model);
-    ui->track_meta->setModel(track_meta_model);
-    ui->artist_members->setModel(artist_member_model);
-    ui->album_artists->setModel(album_artist_model);
-    ui->track_albums->setModel(track_album_model);
-    ui->track_feats->setModel(track_feat_model);
-    ui->track_id->setModel(id_model);
-    ui->extra_meta->setModel(extra_model);
+    ui->artists_list->setModel(_artist_list_model);
+    ui->albums_list->setModel(_album_list_model);
+    ui->tracks_list->setModel(_track_list_model);
+    ui->artist_meta->setModel(_artist_meta_model);
+    ui->album_meta->setModel(_album_meta_model);
+    ui->track_meta->setModel(_track_meta_model);
+    ui->artist_members->setModel(_artist_member_model);
+    ui->album_artists->setModel(_album_artist_model);
+    ui->track_albums->setModel(_track_album_model);
+    ui->track_feats->setModel(_track_feat_model);
+    ui->track_id->setModel(_id_model);
+    ui->extra_meta->setModel(_extra_model);
 
     // 自动保存
-    timer = new QTimer(this);
-    timer->setInterval(5 * 60 * 1000);
-    timer->setSingleShot(true);
-    connect(timer, &QTimer::timeout, this, [this]() {
-        if (!filePath.isEmpty()) {
+    _timer = new QTimer(this);
+    _timer->setInterval(5 * 60 * 1000);
+    _timer->setSingleShot(true);
+    connect(_timer, &QTimer::timeout, this, [this]() {
+        if (!_file_path.isEmpty()) {
             saveFile();
         }
     });
-    timer->start();
+    _timer->start();
 
     // wintoast 通知栏
     WinToast::instance()->setAppName(L"TTML META DB");
@@ -99,17 +99,17 @@ MainWindow::MainWindow(QWidget *parent)
         qDebug() << "Error, your system in not compatible!";
     }
 
-    auto *shortcut = new QShortcut(QKeySequence("Ctrl+S"), this);
+    const auto *shortcut = new QShortcut(QKeySequence("Ctrl+S"), this);
     connect(shortcut, &QShortcut::activated, this, &MainWindow::on_actionSave_triggered);
     connect(IDModel::emitter, &IDModel::subtitleGot, this, [this](const QString &name) {
-        track_meta_model->addData(name);
+        _track_meta_model->addData(name);
     });
     connect(IDModel::emitter, &IDModel::idGot, this, [this](const QString &platform, const QString &name) {
-        id_model->addData(platform, name);
+        _id_model->addData(platform, name);
     });
 
-    if (config.contains("lastFile")) {
-        openFile(config.value("lastFile").toString());
+    if (_config.contains("lastFile")) {
+        openFile(_config.value("lastFile").toString());
     }
 }
 
@@ -119,41 +119,41 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::on_splitter_7_splitterMoved(int pos, int index) {
-    if (moved) return;
-    moved = true;
+    if (_moved) return;
+    _moved = true;
 
     // 计算splitterB的比例并应用到splitterA
     QList<int> sizes7 = ui->splitter_7->sizes();
     const int total7 = ui->splitter_7->width();
     if (total7 > 0) {
         const int total6 = ui->splitter_6->width();
-        QList<int> newSizes6;
+        QList<int> new_sizes6;
         for (const int size: sizes7) {
-            newSizes6.append(size * total6 / total7);
+            new_sizes6.append(size * total6 / total7);
         }
-        ui->splitter_6->setSizes(newSizes6);
+        ui->splitter_6->setSizes(new_sizes6);
     }
 
-    moved = false;
+    _moved = false;
 }
 
 void MainWindow::on_splitter_6_splitterMoved(int pos, int index) {
-    if (moved) return;
-    moved = true;
+    if (_moved) return;
+    _moved = true;
 
     // 计算splitterB的比例并应用到splitterA
     QList<int> sizes6 = ui->splitter_6->sizes();
     const int total6 = ui->splitter_6->width();
     if (total6 > 0) {
         const int total7 = ui->splitter_7->width();
-        QList<int> newSizes7;
+        QList<int> new_sizes7;
         for (const int size: sizes6) {
-            newSizes7.append(size * total7 / total6);
+            new_sizes7.append(size * total7 / total6);
         }
-        ui->splitter_7->setSizes(newSizes7);
+        ui->splitter_7->setSizes(new_sizes7);
     }
 
-    moved = false;
+    _moved = false;
 }
 
 
@@ -161,16 +161,16 @@ void MainWindow::on_splitter_6_splitterMoved(int pos, int index) {
  * 打开文件
  */
 void MainWindow::on_actionOpen_triggered() {
-    const QString openPath = QFileDialog::getOpenFileName(this, "打开元数据库文件", "", "TTML元数据库 (*.metadb)");
+    const QString open_path = QFileDialog::getOpenFileName(this, "打开元数据库文件", "", "TTML元数据库 (*.metadb)");
 
-    openFile(openPath);
+    openFile(open_path);
 }
 
 /**
  * 保存
  */
 void MainWindow::on_actionSave_triggered() {
-    if (filePath.isEmpty()) {
+    if (_file_path.isEmpty()) {
         on_actionSaveAs_triggered();
     } else {
         saveFile();
@@ -183,34 +183,34 @@ void MainWindow::on_actionSave_triggered() {
  */
 void MainWindow::on_actionSaveAs_triggered() {
     // 弹出文件对话框选择保存路径
-    const QString savePath = QFileDialog::getSaveFileName(this, "保存元数据库文件", "", "TTML元数据库 (*.metadb)"
+    const QString save_path = QFileDialog::getSaveFileName(this, "保存元数据库文件", "", "TTML元数据库 (*.metadb)"
     );
 
-    if (savePath.isEmpty()) {
+    if (save_path.isEmpty()) {
         QMessageBox::information(this, "", "用户取消保存文件", QMessageBox::Ok);
         qDebug() << "No file selected.";
         return;
     }
 
-    filePath = savePath;
+    _file_path = save_path;
     saveFile();
 }
 
 void MainWindow::on_actionCookie_triggered() {
     // 1. 弹出输入对话框[citation:8]
     bool ok;
-    const QString cookieText = QInputDialog::getText(nullptr, // 父窗口
+    const QString cookie_text = QInputDialog::getText(nullptr, // 父窗口
                                                      tr("输入Cookie"), // 标题
                                                      tr("请输入Cookie值:"), // 标签
                                                      QLineEdit::Normal, // 输入模式
-                                                     config.contains("qqMusicCookie")
-                                                         ? config.value("qqMusicCookie").toString()
+                                                     _config.contains("qqMusicCookie")
+                                                         ? _config.value("qqMusicCookie").toString()
                                                          : "", // 默认文本
                                                      &ok); // 用户是否点击了OK
 
     // 2. 判断：如果用户点击OK且输入非空，则存储
-    if (ok and not cookieText.trimmed().isEmpty()) {
-        config.setValue("qqMusicCookie", cookieText.trimmed());
+    if (ok and not cookie_text.trimmed().isEmpty()) {
+        _config.setValue("qqMusicCookie", cookie_text.trimmed());
         QMessageBox::information(nullptr, tr("成功"), tr("Cookie已保存。"));
     } else if (ok) {
         // 用户点击OK但输入为空
@@ -227,35 +227,35 @@ void MainWindow::on_tabWidget_currentChanged(const int index) const {
     if (index == 1) {
         auto selected_artist = ui->artists_list->selectionModel()->selectedIndexes();
         if (selected_artist.isEmpty()) {
-            album_list_model->clean();
-            album_artist_model->clean();
-            album_meta_model->clean();
+            _album_list_model->clean();
+            _album_artist_model->clean();
+            _album_meta_model->clean();
         } else {
-            const auto artist_uuid = artist_list_model->getArtistByRow(selected_artist.first().row());
-            if (artist_uuid != album_list_model->getArtist()) {
-                album_list_model->setArtist(artist_uuid);
-                album_artist_model->clean();
-                album_meta_model->clean();
+            const auto artist_uuid = _artist_list_model->getArtistByRow(selected_artist.first().row());
+            if (artist_uuid != _album_list_model->getArtist()) {
+                _album_list_model->setArtist(artist_uuid);
+                _album_artist_model->clean();
+                _album_meta_model->clean();
             }
         }
     } else if (index == 2) {
         auto selected_album = ui->albums_list->selectionModel()->selectedIndexes();
         if (selected_album.isEmpty()) {
-            track_list_model->clean();
-            track_album_model->clean();
-            track_feat_model->clean();
-            track_meta_model->clean();
-            id_model->clean();
-            extra_model->clean();
+            _track_list_model->clean();
+            _track_album_model->clean();
+            _track_feat_model->clean();
+            _track_meta_model->clean();
+            _id_model->clean();
+            _extra_model->clean();
         } else {
-            const auto album_uuid = album_list_model->getAlbumByRow(selected_album.first().row());
-            if (album_uuid != track_list_model->getAlbum()) {
-                track_list_model->setAlbum(album_uuid);
-                track_album_model->clean();
-                track_feat_model->clean();
-                track_meta_model->clean();
-                id_model->clean();
-                extra_model->clean();
+            const auto album_uuid = _album_list_model->getAlbumByRow(selected_album.first().row());
+            if (album_uuid != _track_list_model->getAlbum()) {
+                _track_list_model->setAlbum(album_uuid);
+                _track_album_model->clean();
+                _track_feat_model->clean();
+                _track_meta_model->clean();
+                _id_model->clean();
+                _extra_model->clean();
             }
         }
     }
@@ -268,15 +268,15 @@ void MainWindow::on_artists_list_clicked(const QModelIndex &index) const {
     const int row = index.row();
 
     // 获取歌手UUID
-    const auto artist_uuid = artist_list_model->getArtistByRow(row);
+    const auto artist_uuid = _artist_list_model->getArtistByRow(row);
 
     auto &artist = DataBase::artists[artist_uuid];
 
     // 刷新歌手名列表
-    artist_meta_model->setEntity(&artist);
+    _artist_meta_model->setEntity(&artist);
 
     // 刷新成员列表
-    artist_member_model->setFamily(&artist.members, artist_uuid);
+    _artist_member_model->setFamily(&artist.members, artist_uuid);
 }
 
 void MainWindow::on_albums_list_clicked(const QModelIndex &index) const {
@@ -286,16 +286,16 @@ void MainWindow::on_albums_list_clicked(const QModelIndex &index) const {
     const int row = index.row();
 
     // 获取专辑UUID
-    const auto album_uuid = album_list_model->getAlbumByRow(row);
+    const auto album_uuid = _album_list_model->getAlbumByRow(row);
 
     // 刷新专辑名列表
-    album_meta_model->setEntity(&DataBase::albums[album_uuid]);
+    _album_meta_model->setEntity(&DataBase::albums[album_uuid]);
 
     // 刷新歌曲列表
-    track_list_model->setAlbum(album_uuid);
+    _track_list_model->setAlbum(album_uuid);
 
     // 刷新专辑歌手列表
-    album_artist_model->setFamily(&DataBase::albums[album_uuid].artists, album_uuid);
+    _album_artist_model->setFamily(&DataBase::albums[album_uuid].artists, album_uuid);
 }
 
 void MainWindow::on_tracks_list_clicked(const QModelIndex &index) const {
@@ -305,24 +305,26 @@ void MainWindow::on_tracks_list_clicked(const QModelIndex &index) const {
     const int row = index.row();
 
     // 获取专辑UUID
-    const auto track_uuid = track_list_model->getTrackByRow(row);
+    const auto track_uuid = _track_list_model->getTrackByRow(row);
 
     // 刷新专辑名列表
-    track_meta_model->setEntity(&DataBase::tracks[track_uuid]);
+    _track_meta_model->setEntity(&DataBase::tracks[track_uuid]);
 
     // 刷新专辑歌手列表
-    track_album_model->setFamily(&DataBase::tracks[track_uuid].albums, track_uuid);
+    _track_album_model->setFamily(&DataBase::tracks[track_uuid].albums, track_uuid);
 
     // 刷新合作歌手列表
-    track_feat_model->setFamily(&DataBase::tracks[track_uuid].feats, track_uuid);
+    _track_feat_model->setFamily(&DataBase::tracks[track_uuid].feats, track_uuid);
 
     // 刷新ID列表
-    id_model->setFamily(&DataBase::tracks[track_uuid].ids, track_uuid);
+    _id_model->setFamily(&DataBase::tracks[track_uuid].ids, track_uuid);
     ui->track_id->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     ui->track_id->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 
     // 刷新额外信息列表
-    extra_model->setFamily(&DataBase::tracks[track_uuid].extras, track_uuid);
+    _extra_model->setFamily(&DataBase::tracks[track_uuid].extras, track_uuid);
+    ui->extra_meta->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    ui->extra_meta->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 }
 
 void MainWindow::on_artists_list_customContextMenuRequested(const QPoint &pos) {
@@ -336,13 +338,13 @@ void MainWindow::on_artists_list_customContextMenuRequested(const QPoint &pos) {
         // 确保右键点击的项被选中
         ui->artists_list->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("删除歌手");
-        connect(deleteAction, &QAction::triggered, this, &MainWindow::onDeleteArtist);
+        const QAction *delete_action = menu.addAction("删除歌手");
+        connect(delete_action, &QAction::triggered, this, &MainWindow::onDeleteArtist);
     }
 
     // 始终显示添加选项
-    const QAction *addAction = menu.addAction("添加歌手");
-    connect(addAction, &QAction::triggered, this, &MainWindow::onAddArtist);
+    const QAction *add_action = menu.addAction("添加歌手");
+    connect(add_action, &QAction::triggered, this, &MainWindow::onAddArtist);
 
     menu.exec(ui->artists_list->viewport()->mapToGlobal(pos));
 }
@@ -360,13 +362,13 @@ void MainWindow::on_artist_members_customContextMenuRequested(const QPoint &pos)
         // 确保右键点击的项被选中
         ui->artist_members->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("删除乐队成员");
-        connect(deleteAction, &QAction::triggered, this, &MainWindow::onDeleteArtistMember);
+        const QAction *delete_action = menu.addAction("删除乐队成员");
+        connect(delete_action, &QAction::triggered, this, &MainWindow::onDeleteArtistMember);
     }
 
     // 始终显示添加选项
-    const QAction *addAction = menu.addAction("添加乐队成员");
-    connect(addAction, &QAction::triggered, this, &MainWindow::onAddArtistMember);
+    const QAction *add_action = menu.addAction("添加乐队成员");
+    connect(add_action, &QAction::triggered, this, &MainWindow::onAddArtistMember);
 
     menu.exec(ui->artist_members->viewport()->mapToGlobal(pos));
 }
@@ -386,13 +388,13 @@ void MainWindow::on_artist_meta_customContextMenuRequested(const QPoint &pos) {
         // 确保右键点击的项被选中
         ui->artist_meta->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("删除歌手名");
-        connect(deleteAction, &QAction::triggered, this, &MainWindow::onDeleteArtistMeta);
+        const QAction *delete_action = menu.addAction("删除歌手名");
+        connect(delete_action, &QAction::triggered, this, &MainWindow::onDeleteArtistMeta);
     }
 
     // 始终显示添加选项
-    const QAction *addAction = menu.addAction("添加歌手名");
-    connect(addAction, &QAction::triggered, this, &MainWindow::onAddArtistMeta);
+    const QAction *add_action = menu.addAction("添加歌手名");
+    connect(add_action, &QAction::triggered, this, &MainWindow::onAddArtistMeta);
 
     menu.exec(ui->artist_meta->viewport()->mapToGlobal(pos));
 }
@@ -412,25 +414,25 @@ void MainWindow::on_albums_list_customContextMenuRequested(const QPoint &pos) {
         // 确保右键点击的项被选中
         ui->albums_list->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("删除专辑");
-        connect(deleteAction, &QAction::triggered, this, &MainWindow::onDeleteAlbum);
+        const QAction *delete_action = menu.addAction("删除专辑");
+        connect(delete_action, &QAction::triggered, this, &MainWindow::onDeleteAlbum);
     }
 
     // 始终显示添加选项
-    const QAction *addNewAction = menu.addAction("添加新专辑");
-    connect(addNewAction, &QAction::triggered, this, &MainWindow::onAddNewAlbum);
+    const QAction *add_new_action = menu.addAction("添加新专辑");
+    connect(add_new_action, &QAction::triggered, this, &MainWindow::onAddNewAlbum);
 
     // 如果有其他歌手专辑显示添加选项
     if (!DataBase::albums.isEmpty()) {
-        const QAction *addOldAction = menu.addAction("添加已有专辑");
-        connect(addOldAction, &QAction::triggered, this, &MainWindow::onAddOldAlbum);
+        const QAction *add_old_action = menu.addAction("添加已有专辑");
+        connect(add_old_action, &QAction::triggered, this, &MainWindow::onAddOldAlbum);
     }
 
     menu.exec(ui->albums_list->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::on_album_meta_customContextMenuRequested(const QPoint &pos) {
-    if (!album_meta_model->isActive()) {
+    if (!_album_meta_model->isActive()) {
         return;
     }
 
@@ -444,19 +446,19 @@ void MainWindow::on_album_meta_customContextMenuRequested(const QPoint &pos) {
         // 确保右键点击的项被选中
         ui->album_meta->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("删除专辑名");
-        connect(deleteAction, &QAction::triggered, this, &MainWindow::onDeleteAlbumMeta);
+        const QAction *delete_action = menu.addAction("删除专辑名");
+        connect(delete_action, &QAction::triggered, this, &MainWindow::onDeleteAlbumMeta);
     }
 
     // 始终显示添加选项
-    const QAction *addAction = menu.addAction("添加专辑名");
-    connect(addAction, &QAction::triggered, this, &MainWindow::onAddAlbumMeta);
+    const QAction *add_action = menu.addAction("添加专辑名");
+    connect(add_action, &QAction::triggered, this, &MainWindow::onAddAlbumMeta);
 
     menu.exec(ui->album_meta->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::on_album_artists_customContextMenuRequested(const QPoint &pos) {
-    if (!album_artist_model->isActive()) {
+    if (!_album_artist_model->isActive()) {
         return;
     }
 
@@ -470,19 +472,19 @@ void MainWindow::on_album_artists_customContextMenuRequested(const QPoint &pos) 
         // 确保右键点击的项被选中
         ui->album_artists->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("从歌手中删除");
-        connect(deleteAction, &QAction::triggered, this, &MainWindow::onDeleteAlbumFromArtist);
+        const QAction *delete_action = menu.addAction("从歌手中删除");
+        connect(delete_action, &QAction::triggered, this, &MainWindow::onDeleteAlbumFromArtist);
     }
 
     // 始终显示添加选项
-    const QAction *addAction = menu.addAction("添加专辑歌手");
-    connect(addAction, &QAction::triggered, this, &MainWindow::onAddAlbumToArtist);
+    const QAction *add_action = menu.addAction("添加专辑歌手");
+    connect(add_action, &QAction::triggered, this, &MainWindow::onAddAlbumToArtist);
 
     menu.exec(ui->album_artists->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::on_tracks_list_customContextMenuRequested(const QPoint &pos) {
-    if (!track_list_model->isActive()) {
+    if (!_track_list_model->isActive()) {
         return;
     }
 
@@ -495,25 +497,37 @@ void MainWindow::on_tracks_list_customContextMenuRequested(const QPoint &pos) {
         // 确保右键点击的项被选中
         ui->tracks_list->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("删除单曲");
-        connect(deleteAction, &QAction::triggered, this, &MainWindow::onDeleteTrack);
+        const QAction *delete_action = menu.addAction("删除单曲");
+        connect(delete_action, &QAction::triggered, this, &MainWindow::onDeleteTrack);
+
+        // 如果不是第一个
+        if (index.row() != 0) {
+            const QAction *move_up_action = menu.addAction("上移");
+            connect(move_up_action, &QAction::triggered, this, &MainWindow::onMoveUpTrack);
+        }
+
+        // 如果不是最后一个
+        if (index.row() != ui->tracks_list->model()->rowCount() - 1) {
+            const QAction *move_down_action = menu.addAction("下移");
+            connect(move_down_action, &QAction::triggered, this, &MainWindow::onMoveDownTrack);
+        }
     }
 
     // 始终显示添加选项
-    const QAction *addAction = menu.addAction("添加新单曲");
-    connect(addAction, &QAction::triggered, this, &MainWindow::onAddNewTrack);
+    const QAction *add_action = menu.addAction("添加新单曲");
+    connect(add_action, &QAction::triggered, this, &MainWindow::onAddNewTrack);
 
     // 如果有其他单曲显示添加选项
     if (!DataBase::tracks.isEmpty()) {
-        const QAction *addOldAction = menu.addAction("添加已有单曲");
-        connect(addOldAction, &QAction::triggered, this, &MainWindow::onAddOldTrack);
+        const QAction *add_old_action = menu.addAction("添加已有单曲");
+        connect(add_old_action, &QAction::triggered, this, &MainWindow::onAddOldTrack);
     }
 
     menu.exec(ui->tracks_list->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::on_track_meta_customContextMenuRequested(const QPoint &pos) {
-    if (!track_meta_model->isActive()) {
+    if (!_track_meta_model->isActive()) {
         return;
     }
 
@@ -527,19 +541,19 @@ void MainWindow::on_track_meta_customContextMenuRequested(const QPoint &pos) {
         // 确保右键点击的项被选中
         ui->track_meta->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("删除单曲名");
-        connect(deleteAction, &QAction::triggered, this, &MainWindow::onDeleteTrackMeta);
+        const QAction *delete_action = menu.addAction("删除单曲名");
+        connect(delete_action, &QAction::triggered, this, &MainWindow::onDeleteTrackMeta);
     }
 
     // 始终显示添加选项
-    const QAction *addAction = menu.addAction("添加单曲名");
-    connect(addAction, &QAction::triggered, this, &MainWindow::onAddTrackMeta);
+    const QAction *add_action = menu.addAction("添加单曲名");
+    connect(add_action, &QAction::triggered, this, &MainWindow::onAddTrackMeta);
 
     menu.exec(ui->track_meta->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::on_track_albums_customContextMenuRequested(const QPoint &pos) {
-    if (!track_album_model->isActive()) {
+    if (!_track_album_model->isActive()) {
         return;
     }
 
@@ -553,19 +567,19 @@ void MainWindow::on_track_albums_customContextMenuRequested(const QPoint &pos) {
         // 确保右键点击的项被选中
         ui->track_albums->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("从专辑中删除");
-        connect(deleteAction, &QAction::triggered, this, &MainWindow::onDeleteTrackFromAlbum);
+        const QAction *delete_action = menu.addAction("从专辑中删除");
+        connect(delete_action, &QAction::triggered, this, &MainWindow::onDeleteTrackFromAlbum);
     }
 
     // 始终显示添加选项
-    const QAction *addAction = menu.addAction("添加单曲专辑");
-    connect(addAction, &QAction::triggered, this, &MainWindow::onAddTrackToAlbum);
+    const QAction *add_action = menu.addAction("添加单曲专辑");
+    connect(add_action, &QAction::triggered, this, &MainWindow::onAddTrackToAlbum);
 
     menu.exec(ui->track_albums->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::on_track_feats_customContextMenuRequested(const QPoint &pos) {
-    if (!track_feat_model->isActive()) {
+    if (!_track_feat_model->isActive()) {
         return;
     }
 
@@ -579,13 +593,13 @@ void MainWindow::on_track_feats_customContextMenuRequested(const QPoint &pos) {
         // 确保右键点击的项被选中
         ui->track_feats->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("删除参与艺人");
-        connect(deleteAction, &QAction::triggered, this, &MainWindow::onDeleteTrackFeat);
+        const QAction *delete_action = menu.addAction("删除参与艺人");
+        connect(delete_action, &QAction::triggered, this, &MainWindow::onDeleteTrackFeat);
     }
 
     // 始终显示添加选项
-    const QAction *addAction = menu.addAction("添加参与艺人");
-    connect(addAction, &QAction::triggered, this, &MainWindow::onAddTrackFeat);
+    const QAction *add_action = menu.addAction("添加参与艺人");
+    connect(add_action, &QAction::triggered, this, &MainWindow::onAddTrackFeat);
 
     menu.exec(ui->track_feats->viewport()->mapToGlobal(pos));
 }
@@ -606,14 +620,14 @@ void MainWindow::on_track_id_customContextMenuRequested(const QPoint &pos) {
         // 确保右键点击的项被选中
         ui->track_id->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("删除ID");
-        connect(deleteAction, &QAction::triggered, this, [this, index, model]() {
+        const QAction *delete_action = menu.addAction("删除ID");
+        connect(delete_action, &QAction::triggered, this, [&index, &model]() {
             model->removeRow(index.row());
         });
     }
 
-    const QAction *addAction = menu.addAction("添加新行");
-    connect(addAction, &QAction::triggered, this, &MainWindow::onAddID);
+    const QAction *add_action = menu.addAction("添加新行");
+    connect(add_action, &QAction::triggered, this, &MainWindow::onAddID);
 
     menu.exec(ui->track_id->viewport()->mapToGlobal(pos));
 }
@@ -634,14 +648,14 @@ void MainWindow::on_extra_meta_customContextMenuRequested(const QPoint &pos) {
         // 确保右键点击的项被选中
         ui->extra_meta->selectionModel()->select(index, QItemSelectionModel::Select);
 
-        const QAction *deleteAction = menu.addAction("删除ID");
-        connect(deleteAction, &QAction::triggered, this, [this, index, model]() {
+        const QAction *delete_action = menu.addAction("删除ID");
+        connect(delete_action, &QAction::triggered, this, [&index, &model]() {
             model->removeRow(index.row());
         });
     }
 
-    const QAction *addAction = menu.addAction("添加新行");
-    connect(addAction, &QAction::triggered, this, &MainWindow::onAddExtra);
+    const QAction *add_action = menu.addAction("添加新行");
+    connect(add_action, &QAction::triggered, this, &MainWindow::onAddExtra);
 
     menu.exec(ui->extra_meta->viewport()->mapToGlobal(pos));
 }
@@ -659,7 +673,7 @@ void MainWindow::onAddArtist() {
     );
 
     if (ok && !name.isEmpty()) {
-        if (!artist_list_model->addData(name)) {
+        if (!_artist_list_model->addData(name)) {
             QMessageBox::warning(this, "错误", "名称已存在或无效！");
         }
     }
@@ -682,9 +696,9 @@ void MainWindow::onDeleteArtist() {
 
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
-        if (artist_list_model) {
+        if (_artist_list_model) {
             const int row = selected.first().row(); // 获取行号
-            artist_list_model->removeArtist(row);
+            _artist_list_model->removeArtist(row);
         }
     }
 }
@@ -702,7 +716,7 @@ void MainWindow::onAddArtistMeta() {
     );
 
     if (ok && !name.isEmpty()) {
-        if (!artist_meta_model->addData(name)) {
+        if (!_artist_meta_model->addData(name)) {
             QMessageBox::warning(this, "错误", "名称已存在或无效！");
         }
     }
@@ -726,7 +740,7 @@ void MainWindow::onDeleteArtistMeta() {
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
         const int row = selected.first().row(); // 获取行号
-        artist_meta_model->removeMeta(row);
+        _artist_meta_model->removeMeta(row);
     }
 }
 
@@ -737,6 +751,7 @@ void MainWindow::onAddArtistMember() {
         auto &artist = DataBase::artists[artist_uuid];
         messages.append(QString("%1 [%2]").arg(artist.getName()).arg(artist_uuid));
     }
+    messages.sort();
 
     bool ok = false;
     const QString item = QInputDialog::getItem(
@@ -749,7 +764,9 @@ void MainWindow::onAddArtistMember() {
         &ok
     );
     if (ok && !item.isEmpty()) {
-        if (!artist_member_model->addData(artists[messages.indexOf(item)])) {
+        auto uuid = item.mid(item.lastIndexOf('[') + 1);
+        uuid.chop(1);
+        if (!_artist_member_model->addData(uuid)) {
             QMessageBox::warning(this, "错误", "歌手已添加或无效！");
         }
     } else {
@@ -774,7 +791,7 @@ void MainWindow::onDeleteArtistMember() {
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
         const int row = selected.first().row(); // 获取行号
-        artist_member_model->removeData(row);
+        _artist_member_model->removeData(row);
     }
 }
 
@@ -791,7 +808,7 @@ void MainWindow::onAddNewAlbum() {
     );
 
     if (ok && !name.isEmpty()) {
-        if (!album_list_model->addNewData(name)) {
+        if (!_album_list_model->addNewData(name)) {
             QMessageBox::warning(this, "错误", "名称已存在或无效！");
         }
     }
@@ -803,12 +820,12 @@ void MainWindow::onAddOldAlbum() {
     QStringList messages{};
     for (auto &album_uuid: albums) {
         auto &album = DataBase::albums[album_uuid];
-        QStringList artistNames{};
+        QStringList artist_names{};
         for (auto &artist_uuid: album.artists) {
             auto &artist = DataBase::artists[artist_uuid];
-            artistNames.append(artist.getName());
+            artist_names.append(artist.getName());
         }
-        messages.append(QString("%1 - %2 [%3]").arg(album.getName()).arg(artistNames.join('/')).arg(album_uuid));
+        messages.append(QString("%1 - %2 [%3]").arg(album.getName()).arg(artist_names.join('/')).arg(album_uuid));
     }
 
     bool ok = false;
@@ -822,7 +839,7 @@ void MainWindow::onAddOldAlbum() {
         &ok
     );
     if (ok && !item.isEmpty()) {
-        if (!album_list_model->addOldData(albums[messages.indexOf(item)])) {
+        if (!_album_list_model->addOldData(albums[messages.indexOf(item)])) {
             QMessageBox::warning(this, "错误", "专辑已添加或无效！");
         }
     } else {
@@ -848,7 +865,7 @@ void MainWindow::onDeleteAlbum() {
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
         const int row = selected.first().row(); // 获取行号
-        album_list_model->removeAlbumFromArtist(row);
+        _album_list_model->removeAlbumFromArtist(row);
     }
 }
 
@@ -864,7 +881,7 @@ void MainWindow::onAddAlbumMeta() {
     );
 
     if (ok && !name.isEmpty()) {
-        if (!album_meta_model->addData(name)) {
+        if (!_album_meta_model->addData(name)) {
             QMessageBox::warning(this, "错误", "名称已存在或无效！");
         }
     }
@@ -887,7 +904,7 @@ void MainWindow::onDeleteAlbumMeta() {
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
         const int row = selected.first().row(); // 获取行号
-        album_meta_model->removeMeta(row);
+        _album_meta_model->removeMeta(row);
     }
 }
 
@@ -898,6 +915,7 @@ void MainWindow::onAddAlbumToArtist() {
         auto &artist = DataBase::artists[artist_uuid];
         messages.append(QString("%1 [%2]").arg(artist.getName()).arg(artist_uuid));
     }
+    messages.sort();
 
     bool ok = false;
     const QString item = QInputDialog::getItem(
@@ -910,7 +928,9 @@ void MainWindow::onAddAlbumToArtist() {
         &ok
     );
     if (ok && !item.isEmpty()) {
-        if (!album_artist_model->addData(artists[messages.indexOf(item)])) {
+        auto uuid = item.mid(item.lastIndexOf('[') + 1);
+        uuid.chop(1);
+        if (!_album_artist_model->addData(uuid)) {
             QMessageBox::warning(this, "错误", "歌手已添加或无效！");
         }
     } else {
@@ -935,8 +955,8 @@ void MainWindow::onDeleteAlbumFromArtist() {
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
         const int row = selected.first().row(); // 获取行号
-        album_artist_model->removeData(row);
-        album_list_model->refreshAll();
+        _album_artist_model->removeData(row);
+        _album_list_model->refreshAll();
     }
 }
 
@@ -952,7 +972,7 @@ void MainWindow::onAddNewTrack() {
     );
 
     if (ok && !name.isEmpty()) {
-        if (!track_list_model->addNewData(name)) {
+        if (!_track_list_model->addNewData(name)) {
             QMessageBox::warning(this, "错误", "名称已存在或无效！");
         }
     }
@@ -960,7 +980,7 @@ void MainWindow::onAddNewTrack() {
 
 void MainWindow::onAddOldTrack() {
     auto selected = ui->artists_list->selectionModel()->selectedIndexes();
-    const auto artist_uuid = artist_list_model->getArtistByRow(selected.first().row());
+    const auto artist_uuid = _artist_list_model->getArtistByRow(selected.first().row());
     auto &artist = DataBase::artists[artist_uuid];
     QSet<QString> messages{};
     for (auto &album_uuid: artist.albums) {
@@ -975,13 +995,13 @@ void MainWindow::onAddOldTrack() {
         return;
     }
 
-    const QStringList messagesList{messages.begin(), messages.end()};
+    const QStringList messages_list{messages.begin(), messages.end()};
     bool ok = false;
     const QString item = QInputDialog::getItem(
         this,
         "选择已有单曲",
         "单曲 - 歌手 - 单曲ID",
-        messagesList,
+        messages_list,
         0,
         false,
         &ok
@@ -989,12 +1009,36 @@ void MainWindow::onAddOldTrack() {
     if (ok && !item.isEmpty()) {
         const QRegularExpression re(R"((?<=\[)[0-9\-]+(?=\]$))");
         const auto match = re.match(item);
-        if (match.hasMatch() && !track_list_model->addOldData(match.captured(0))) {
+        if (match.hasMatch() && !_track_list_model->addOldData(match.captured(0))) {
             QMessageBox::warning(this, "错误", "单曲已添加或无效！");
         }
     } else {
         QMessageBox::critical(this, "撤回", "用户取消选择");
     }
+}
+
+void MainWindow::onMoveUpTrack() {
+    // 获取当前选中项
+    QModelIndexList selected = ui->tracks_list->selectionModel()->selectedIndexes();
+    if (selected.isEmpty()) {
+        return;
+    }
+
+    // 获取模型并移动数据
+    const int row = selected.first().row(); // 获取行号
+    _track_list_model->moveTrackUp(row);
+}
+
+void MainWindow::onMoveDownTrack() {
+    // 获取当前选中项
+    QModelIndexList selected = ui->tracks_list->selectionModel()->selectedIndexes();
+    if (selected.isEmpty()) {
+        return;
+    }
+
+    // 获取模型并移动数据
+    const int row = selected.first().row(); // 获取行号
+    _track_list_model->moveTrackDown(row);
 }
 
 void MainWindow::onDeleteTrack() {
@@ -1016,7 +1060,7 @@ void MainWindow::onDeleteTrack() {
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
         const int row = selected.first().row(); // 获取行号
-        track_list_model->removeTrackFromAlbum(row);
+        _track_list_model->removeTrackFromAlbum(row);
     }
 }
 
@@ -1032,7 +1076,7 @@ void MainWindow::onAddTrackMeta() {
     );
 
     if (ok && !name.isEmpty()) {
-        if (!track_meta_model->addData(name)) {
+        if (!_track_meta_model->addData(name)) {
             QMessageBox::warning(this, "错误", "名称已存在或无效！");
         }
     }
@@ -1055,19 +1099,20 @@ void MainWindow::onDeleteTrackMeta() {
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
         const int row = selected.first().row(); // 获取行号
-        track_meta_model->removeMeta(row);
+        _track_meta_model->removeMeta(row);
     }
 }
 
 void MainWindow::onAddTrackToAlbum() {
     QModelIndexList selected = ui->artists_list->selectionModel()->selectedIndexes();
-    const auto artist_uuid = artist_list_model->getArtistByRow(selected.first().row());
+    const auto artist_uuid = _artist_list_model->getArtistByRow(selected.first().row());
     auto &artist = DataBase::artists[artist_uuid];
     QStringList messages{};
     for (auto &album_uuid: artist.albums) {
         auto &album = DataBase::albums[album_uuid];
         messages.append(QString("%1 [%2]").arg(album.getName()).arg(album_uuid));
     }
+    messages.sort();
 
     bool ok = false;
     const QString item = QInputDialog::getItem(
@@ -1080,7 +1125,9 @@ void MainWindow::onAddTrackToAlbum() {
         &ok
     );
     if (ok && !item.isEmpty()) {
-        if (!track_album_model->addData(artist.albums[messages.indexOf(item)])) {
+        auto uuid = item.mid(item.lastIndexOf('[') + 1);
+        uuid.chop(1);
+        if (!_track_album_model->addData(uuid)) {
             QMessageBox::warning(this, "错误", "专辑已添加或无效！");
         }
     } else {
@@ -1105,8 +1152,8 @@ void MainWindow::onDeleteTrackFromAlbum() {
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
         const int row = selected.first().row(); // 获取行号
-        track_album_model->removeData(row);
-        track_list_model->refreshAll();
+        _track_album_model->removeData(row);
+        _track_list_model->refreshAll();
     }
 }
 
@@ -1117,6 +1164,7 @@ void MainWindow::onAddTrackFeat() {
         auto &artist = DataBase::artists[artist_uuid];
         messages.append(QString("%1 [%2]").arg(artist.getName()).arg(artist_uuid));
     }
+    messages.sort();
 
     bool ok = false;
     const QString item = QInputDialog::getItem(
@@ -1129,7 +1177,9 @@ void MainWindow::onAddTrackFeat() {
         &ok
     );
     if (ok && !item.isEmpty()) {
-        if (!track_feat_model->addData(artists[messages.indexOf(item)])) {
+        auto uuid = item.mid(item.lastIndexOf('[') + 1);
+        uuid.chop(1);
+        if (!_track_feat_model->addData(uuid)) {
             QMessageBox::warning(this, "错误", "歌手已添加或无效！");
         }
     } else {
@@ -1154,7 +1204,7 @@ void MainWindow::onDeleteTrackFeat() {
     if (reply == QMessageBox::Yes) {
         // 获取模型并删除数据
         const int row = selected.first().row(); // 获取行号
-        track_feat_model->removeData(row);
+        _track_feat_model->removeData(row);
     }
 }
 
@@ -1173,13 +1223,13 @@ void MainWindow::onAddID() {
             return;
         }
 
-        if (!id_model->addData(key, value)) {
+        if (!_id_model->addData(key, value)) {
             QMessageBox::warning(this, "错误", "ID已添加或无效！");
             return;
         }
         // 添加成功时滚动到底部
-        const QModelIndex lastIndex = id_model->index(id_model->rowCount(QModelIndex()) - 1, 0);
-        ui->track_id->scrollTo(lastIndex, QAbstractItemView::PositionAtBottom);
+        const QModelIndex last_index = _id_model->index(_id_model->rowCount(QModelIndex()) - 1, 0);
+        ui->track_id->scrollTo(last_index, QAbstractItemView::PositionAtBottom);
 
         ui->track_id->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
         ui->track_id->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
@@ -1194,26 +1244,34 @@ void MainWindow::onAddExtra() {
     dialog.setWindowTitle("添加扩展数据");
     dialog.setWindowIcon(QIcon(":/res/favicon.ico"));
     if (dialog.exec() == QDialog::Accepted) {
-        const auto key = dialog.getKeyText();
-        auto value = dialog.getValueText();
+        const auto keys = dialog.getKeyText().split(',');
+        const auto values = dialog.getValueText().split(',');
+        bool success = false;
 
-        if (!extra_model->addData(key, value)) {
+        for (const auto &key: keys)
+            for (const auto &value: values)
+                success |= _extra_model->addData(key.trimmed(), value.trimmed());
+
+        if (!success) {
             QMessageBox::warning(this, "错误", "ID已添加或无效！");
             return;
         }
         // 添加成功时滚动到底部
-        const QModelIndex lastIndex = extra_model->index(extra_model->rowCount(QModelIndex()) - 1, 0);
-        ui->track_id->scrollTo(lastIndex, QAbstractItemView::PositionAtBottom);
+        const QModelIndex last_index = _extra_model->index(_extra_model->rowCount(QModelIndex()) - 1, 0);
+        ui->extra_meta->scrollTo(last_index, QAbstractItemView::PositionAtBottom);
+
+        ui->extra_meta->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        ui->extra_meta->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     } else {
         QMessageBox::critical(this, "撤回", "用户取消输入");
     }
 }
 
 void MainWindow::on_copy_meta_clicked() {
-    if (track_list_model->isActive()) {
+    if (_track_list_model->isActive()) {
         // 选中时才复制
         auto selected = ui->tracks_list->selectionModel()->selectedRows();
-        const auto track_uuid = track_list_model->getTrackByRow(selected.first().row());
+        const auto track_uuid = _track_list_model->getTrackByRow(selected.first().row());
         const auto &track = DataBase::tracks[track_uuid];
         const auto xml = track.printMeta().join("");
         QClipboard *clipboard = QApplication::clipboard();
@@ -1228,7 +1286,7 @@ void MainWindow::on_copy_meta_clicked() {
  */
 void MainWindow::closeEvent(QCloseEvent *event) {
     // 创建询问对话框
-    const QMessageBox::StandardButton resBtn = QMessageBox::question(
+    const QMessageBox::StandardButton res_btn = QMessageBox::question(
         this,
         "确认退出",
         "退出前需要保存文件吗？",
@@ -1237,45 +1295,45 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     );
 
     // 根据用户选择处理事件
-    if (resBtn == QMessageBox::Yes) {
-        if (filePath.isEmpty()) {
+    if (res_btn == QMessageBox::Yes) {
+        if (_file_path.isEmpty()) {
             // 弹出文件对话框选择保存路径
-            const QString savePath = QFileDialog::getSaveFileName(this, "保存元数据库文件", "", "TTML元数据库 (*.metadb)"
+            const QString save_path = QFileDialog::getSaveFileName(this, "保存元数据库文件", "", "TTML元数据库 (*.metadb)"
             );
 
-            if (savePath.isEmpty()) {
+            if (save_path.isEmpty()) {
                 QMessageBox::information(this, "", "用户取消保存文件", QMessageBox::Ok);
                 qDebug() << "No file selected.";
                 event->ignore();
                 return;
             }
 
-            filePath = savePath;
+            _file_path = save_path;
         }
         saveFile();
     }
     event->accept(); // 接受关闭事件
 }
 
-void MainWindow::openFile(const QString &openFilePath) {
-    if (openFilePath.isEmpty()) {
+void MainWindow::openFile(const QString &open_file_path) {
+    if (open_file_path.isEmpty()) {
         QMessageBox::information(this, "", "用户取消打开文件", QMessageBox::Ok);
         return;
     } else {
         // 打开文件并读取内容
-        filePath = openFilePath;
-        QFile file(filePath);
+        _file_path = open_file_path;
+        QFile file(_file_path);
         if (!file.open(QIODevice::ReadOnly)) {
             qDebug() << "Failed to open file!";
             return;
         }
 
         // 读取压缩文件内容
-        const QByteArray jsonData = file.readAll();
+        const QByteArray json_data = file.readAll();
         file.close();
 
         // 尝试解析 JSON 数据
-        const QJsonDocument document = QJsonDocument::fromJson(jsonData);
+        const QJsonDocument document = QJsonDocument::fromJson(json_data);
 
         if (document.isNull()) {
             qDebug() << "Failed to parse JSON.";
@@ -1288,16 +1346,16 @@ void MainWindow::openFile(const QString &openFilePath) {
             return;
         }
 
-        config.setValue("lastFile", openFilePath);
+        _config.setValue("lastFile", open_file_path);
 
         // 获取 JSON 对象
         if (document.isObject()) {
-            QJsonObject jsonObject = document.object();
+            QJsonObject json_object = document.object();
 
             // 处理第一个数组
             DataBase::artists.clear();
-            if (jsonObject.contains("artists") && jsonObject["artists"].isArray()) {
-                QJsonArray artists_json = jsonObject["artists"].toArray();
+            if (json_object.contains("artists") && json_object["artists"].isArray()) {
+                QJsonArray artists_json = json_object["artists"].toArray();
                 for (const QJsonValue artist: artists_json) {
                     const QJsonObject item = artist.toObject();
                     Artist new_artist(item);
@@ -1307,8 +1365,8 @@ void MainWindow::openFile(const QString &openFilePath) {
 
             // 处理第二个数组
             DataBase::albums.clear();
-            if (jsonObject.contains("albums") && jsonObject["albums"].isArray()) {
-                QJsonArray albums_json = jsonObject["albums"].toArray();
+            if (json_object.contains("albums") && json_object["albums"].isArray()) {
+                QJsonArray albums_json = json_object["albums"].toArray();
                 for (const QJsonValue value: albums_json) {
                     const QJsonObject item = value.toObject();
                     Album new_album(item);
@@ -1318,8 +1376,8 @@ void MainWindow::openFile(const QString &openFilePath) {
 
             // 处理第三个数组
             DataBase::tracks.clear();
-            if (jsonObject.contains("tracks") && jsonObject["tracks"].isArray()) {
-                QJsonArray tracks_json = jsonObject["tracks"].toArray();
+            if (json_object.contains("tracks") && json_object["tracks"].isArray()) {
+                QJsonArray tracks_json = json_object["tracks"].toArray();
                 for (const QJsonValue value: tracks_json) {
                     const QJsonObject item = value.toObject();
                     Track new_track(item);
@@ -1327,7 +1385,7 @@ void MainWindow::openFile(const QString &openFilePath) {
                 }
             }
 
-            artist_list_model->refreshAll();
+            _artist_list_model->refreshAll();
 
             ui->statusbar->showMessage("导入成功");
             ui->tabWidget->setCurrentIndex(0);
@@ -1341,19 +1399,19 @@ void MainWindow::openFile(const QString &openFilePath) {
  * 保存文件
  */
 void MainWindow::saveFile() {
-    if (timer->isActive()) {
-        timer->stop();
+    if (_timer->isActive()) {
+        _timer->stop();
     }
-    timer->start();
+    _timer->start();
 
     // 打开文件保存压缩数据
-    QFile file(filePath);
+    QFile file(_file_path);
     if (!file.open(QIODevice::WriteOnly)) {
         qDebug() << "Failed to open file for writing!";
         return;
     }
 
-    config.setValue("lastFile", filePath);
+    _config.setValue("lastFile", _file_path);
 
     // 将数组转换为 QJsonArray
     QJsonArray artists_json{};
@@ -1372,19 +1430,19 @@ void MainWindow::saveFile() {
     }
 
     // 将 QJsonArray 封装到 QJsonObject 中
-    QJsonObject jsonObject;
-    jsonObject["artists"] = artists_json;
-    jsonObject["albums"] = albums_json;
-    jsonObject["tracks"] = tracks_json;
+    QJsonObject json_object;
+    json_object["artists"] = artists_json;
+    json_object["albums"] = albums_json;
+    json_object["tracks"] = tracks_json;
 
     // 创建 JSON 文档
-    const QJsonDocument doc(jsonObject);
+    const QJsonDocument doc(json_object);
 
     // 获取 JSON 数据（紧凑格式）
-    const QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
+    const QByteArray json_data = doc.toJson(QJsonDocument::Compact);
 
     // 写入压缩数据
-    file.write(jsonData);
+    file.write(json_data);
     file.close();
 
     ui->statusbar->showMessage("导出完成");

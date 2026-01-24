@@ -36,11 +36,11 @@ public:
     [[nodiscard]]QString getArtist() const;
 
 private:
-    QString artist_uuid;
+    QString _artist_uuid;
 
-    QList<QString> albums{};
+    QList<QString> _albums{};
 
-    QWidget *window;
+    QWidget *_view;
 };
 
 

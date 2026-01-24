@@ -86,6 +86,24 @@ bool TrackModel::addOldData(const QString &uuid) {
     return false;
 }
 
+bool TrackModel::moveTrackUp(const int row) {
+    if (row < 1 || row >= tracks.size())
+        return false;
+    beginMoveRows(QModelIndex(), row, row, QModelIndex(), row - 1);
+    std::swap(tracks[row], tracks[row - 1]);
+    endMoveRows();
+    return true;
+}
+
+bool TrackModel::moveTrackDown(const int row) {
+    if (row < 0 || row >= tracks.size() - 1)
+        return false;
+    beginMoveRows(QModelIndex(), row, row, QModelIndex(), row + 2);
+    std::swap(tracks[row], tracks[row + 1]);
+    endMoveRows();
+    return true;
+}
+
 /**
  *  根据选中单曲行号从专辑中删除单曲
  * @param row 选中单曲的行号

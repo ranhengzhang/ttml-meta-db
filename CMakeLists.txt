@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(ttml-meta-db VERSION 0.9 LANGUAGES CXX)
+project(ttml-meta-db VERSION 0.10 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -77,6 +77,9 @@ set(PROJECT_SOURCES
 
         wintoastlib.cpp
         wintoastlib.h
+
+        utils.h
+        utils.cpp
 
         wintoast.hpp
 

@@ -27,9 +27,9 @@ public:
 
     void refreshAll();
 private:
-    QList<QString> artists{};
+    QList<QString> _artists{};
 
-    QWidget *view{};
+    QWidget *_view{};
 };
 
 

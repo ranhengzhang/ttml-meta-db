@@ -22,6 +22,10 @@ public:
 
     bool addOldData(const QString& uuid);
 
+    bool moveTrackUp(int row);
+
+    bool moveTrackDown(int row);
+
     bool removeTrackFromAlbum(int row);
 
     [[nodiscard]] QString getTrackByRow(int row) const;

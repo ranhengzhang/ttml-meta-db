@@ -11,19 +11,19 @@
 #include "artist.h"
 
 AlbumModel::AlbumModel(QObject *parent) : QAbstractListModel(parent) {
-    window = dynamic_cast<QWidget *>(parent);
+    _view = dynamic_cast<QWidget *>(parent);
 }
 
 int AlbumModel::rowCount(const QModelIndex &parent) const {
     Q_UNUSED(parent);
-    return albums.size();
+    return _albums.size();
 }
 
 QVariant AlbumModel::data(const QModelIndex &index, int role) const {
-    if (!index.isValid() || index.row() >= albums.size())
+    if (!index.isValid() || index.row() >= _albums.size())
         return {};
 
-    const QString uuid = albums.at(index.row());
+    const QString uuid = _albums.at(index.row());
     if (!DataBase::albums.contains(uuid)) {
         return {};
     }
@@ -46,7 +46,7 @@ Qt::ItemFlags AlbumModel::flags(const QModelIndex &index) const {
  */
 bool AlbumModel::addNewData(const QString &name) {
     // 获取当前歌手
-    auto &artist = DataBase::artists[artist_uuid];
+    auto &artist = DataBase::artists[_artist_uuid];
 
     // 检查歌手下同名专辑
     bool exist = false;
@@ -57,14 +57,22 @@ bool AlbumModel::addNewData(const QString &name) {
         return false; // 名称已存在，插入失败
     }
 
-    beginInsertRows(QModelIndex(), albums.size(), albums.size());
-    Album val;
+    int index = 0;
+    for (index = 0; index < _albums.size(); ++index) {
+        if (DataBase::albums[_albums[index]].getName() > name)
+            break;
+    }
 
+    beginInsertRows(QModelIndex(), index, index);
+
+    Album val;
     val.metas.append(name);
-    val.artists.append(artist_uuid);
+    val.artists.append(_artist_uuid);
+
     DataBase::albums.insert(val.getUUID(), val);
     artist.albums.append(val.getUUID());
-    albums.append(val.getUUID());
+    _albums.append(val.getUUID());
+
     endInsertRows();
     return true; // 插入成功
 }
@@ -76,16 +84,16 @@ bool AlbumModel::addNewData(const QString &name) {
  */
 bool AlbumModel::addOldData(const QString &album_uuid) {
     if (DataBase::albums.contains(album_uuid)) {
-        auto &artist = DataBase::artists[artist_uuid];
+        auto &artist = DataBase::artists[_artist_uuid];
         if (artist.albums.contains(album_uuid)) {
             return false;
         }
 
-        beginInsertRows(QModelIndex(), albums.size(), albums.size());
+        beginInsertRows(QModelIndex(), _albums.size(), _albums.size());
         auto &album = DataBase::albums[album_uuid];
         artist.albums.append(album_uuid);
-        album.artists.append(artist_uuid);
-        albums.append(album_uuid);
+        album.artists.append(_artist_uuid);
+        _albums.append(album_uuid);
         endInsertRows();
         return true;
     }
@@ -98,16 +106,16 @@ bool AlbumModel::addOldData(const QString &album_uuid) {
  * @return 删除成功/失败
  */
 bool AlbumModel::removeAlbumFromArtist(const int row) {
-    if (row < 0 || row >= albums.size())
+    if (row < 0 || row >= _albums.size())
         return false;
 
     beginRemoveRows(QModelIndex(), row, row);
     // 从当前歌手中移除专辑
-    auto &artist = DataBase::artists[artist_uuid];
-    const QString album_uuid = albums.at(row);
+    auto &artist = DataBase::artists[_artist_uuid];
+    const QString album_uuid = _albums.at(row);
     auto &album = DataBase::albums[album_uuid];
     artist.albums.removeAll(album_uuid);
-    album.removeFromArtist(artist_uuid);
+    album.removeFromArtist(_artist_uuid);
     endRemoveRows();
 
     return true;
@@ -119,7 +127,7 @@ bool AlbumModel::removeAlbumFromArtist(const int row) {
  */
 void AlbumModel::setArtist(const QString &artist_uuid) {
     beginResetModel();
-    this->artist_uuid = artist_uuid;
+    this->_artist_uuid = artist_uuid;
 
     // 将歌手的专辑添加到显示中
     auto &artist = DataBase::artists[artist_uuid];
@@ -129,13 +137,22 @@ void AlbumModel::setArtist(const QString &artist_uuid) {
             artist.albums.removeAll(album_uuid);
         }
     }
-    albums = artist.albums;
+    _albums = artist.albums;
+    std::sort(_albums.begin(), _albums.end(), [](const QString &keyA, const QString &keyB) {
+        return DataBase::albums[keyA].getName() < DataBase::albums[keyB].getName();
+    });
     endResetModel();
 }
 
 void AlbumModel::refreshAll() {
     beginResetModel(); // 通知视图数据即将全部重置
-    albums = DataBase::artists.contains(artist_uuid) ? DataBase::artists[artist_uuid].albums : QList<QString>{};
+
+    _albums = DataBase::artists.contains(_artist_uuid) ? DataBase::artists[_artist_uuid].albums : QList<QString>{};
+
+    std::sort(_albums.begin(), _albums.end(), [](const QString &keyA, const QString &keyB) {
+        return DataBase::albums[keyA].getName() < DataBase::albums[keyB].getName();
+    });
+
     endResetModel(); // 通知视图数据重置完成
 }
 
@@ -145,17 +162,17 @@ void AlbumModel::refreshAll() {
  * @return 专辑的 UUID
  */
 QString AlbumModel::getAlbumByRow(const int row) const {
-    Q_ASSERT(row >= 0 && row < albums.size());
-    return albums.at(row);
+    Q_ASSERT(row >= 0 && row < _albums.size());
+    return _albums.at(row);
 }
 
 void AlbumModel::clean() {
     beginResetModel();
-    artist_uuid = {};
-    albums = {};
+    _artist_uuid = {};
+    _albums = {};
     endResetModel();
 }
 
 QString AlbumModel::getArtist() const {
-    return artist_uuid;
+    return _artist_uuid;
 }
