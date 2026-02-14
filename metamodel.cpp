@@ -40,7 +40,8 @@ Qt::ItemFlags MetaModel::flags(const QModelIndex &index) const {
  * @param name 添加的名称
  * @return 添加成功/失败
  */
-bool MetaModel::addData(const QString &name) {
+bool MetaModel::addData(QString name) {
+    name = name.trimmed();
     if (entity->metas.contains(name)) {
         return false;
     }

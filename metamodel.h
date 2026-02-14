@@ -22,7 +22,7 @@ public:
 
     [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
 
-    bool addData(const QString& name);
+    bool addData(QString name);
 
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 

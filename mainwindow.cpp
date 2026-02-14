@@ -672,8 +672,8 @@ void MainWindow::onAddArtist() {
         &ok
     );
 
-    if (ok && !name.isEmpty()) {
-        if (!_artist_list_model->addData(name)) {
+    if (ok && !name.trimmed().isEmpty()) {
+        if (!_artist_list_model->addData(name.trimmed())) {
             QMessageBox::warning(this, "错误", "名称已存在或无效！");
         }
     }
@@ -807,8 +807,8 @@ void MainWindow::onAddNewAlbum() {
         &ok
     );
 
-    if (ok && !name.isEmpty()) {
-        if (!_album_list_model->addNewData(name)) {
+    if (ok && !name.trimmed().isEmpty()) {
+        if (!_album_list_model->addNewData(name.trimmed())) {
             QMessageBox::warning(this, "错误", "名称已存在或无效！");
         }
     }
@@ -971,8 +971,8 @@ void MainWindow::onAddNewTrack() {
         &ok
     );
 
-    if (ok && !name.isEmpty()) {
-        if (!_track_list_model->addNewData(name)) {
+    if (ok && !name.trimmed().isEmpty()) {
+        if (!_track_list_model->addNewData(name.trimmed())) {
             QMessageBox::warning(this, "错误", "名称已存在或无效！");
         }
     }
