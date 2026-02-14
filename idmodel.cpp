@@ -226,58 +226,68 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
                 return {};
             }
 
-            // 尝试获取别名
-            QNetworkAccessManager manager;
-            const auto request = QNetworkRequest(QUrl(value));
-            QNetworkReply *reply = manager.get(request);
-
-            // 阻塞等待请求完成
-            QEventLoop loop;
-            QTimer timer;
-            timer.setSingleShot(true);
-
-            // 连接信号（完成/超时）
-            connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-            connect(&timer, &QTimer::timeout, [&]() {
-                loop.quit();
-                reply->abort(); // 主动终止请求
-            });
-
-            timer.start(10 * 1000);
-            loop.exec();
-
-            // 判断超时情况
-            const bool isTimeout = !timer.isActive();
-            if (isTimeout) {
-                reply->deleteLater();
-                *ok = false;
-                return {};
-            }
-
-            // 正常错误处理
-            if (reply->error() != QNetworkReply::NoError) {
-                reply->deleteLater();
-                *ok = false;
-                return {};
-            }
-
-            // 处理内容...
-            const QString content = QString::fromUtf8(reply->readAll());
-            reply->deleteLater();
-
-            // 查找目标字符串
-            const auto targetIndex = content.indexOf(R"(subtit)");
-            if (targetIndex >= 0) {
-                // 正则匹配
-                const QRegularExpression find(R"((?<=\"\>\n).*?(?=\n))");
-                const auto subtitle = find.match(content, targetIndex);
-                if (subtitle.hasMatch() && !subtitle.captured(0).isEmpty()) {
-                    emit emitter->subtitleGot(subtitle.captured(0));
-                }
-            }
-
             value = match.captured(0);
         }
+        // 尝试获取别名
+        QNetworkAccessManager manager;
+        const auto request = QNetworkRequest(QUrl(QString(R"(https://music.163.com/api/song/detail/?ids=[%1])").arg(value)));
+        QNetworkReply *reply = manager.get(request);
+
+        // 阻塞等待请求完成
+        QEventLoop loop;
+        QTimer timer;
+        timer.setSingleShot(true);
+
+        // 连接信号（完成/超时）
+        connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        connect(&timer, &QTimer::timeout, [&]() {
+            loop.quit();
+            reply->abort(); // 主动终止请求
+        });
+
+        timer.start(10 * 1000);
+        loop.exec();
+
+        // 判断超时情况
+        const bool isTimeout = !timer.isActive();
+        if (isTimeout) {
+            reply->deleteLater();
+            *ok = false;
+            return {};
+        }
+
+        // 正常错误处理
+        if (reply->error() != QNetworkReply::NoError) {
+            reply->deleteLater();
+            *ok = false;
+            return {};
+        }
+
+        // 处理内容...
+        const QString content = QString::fromUtf8(reply->readAll());
+        reply->deleteLater();
+
+        // json 解析
+        const QJsonDocument doc = QJsonDocument::fromJson(content.toUtf8());
+        const QJsonObject obj = doc.object();
+        const auto songs = obj.value("songs").toArray();
+        if (!songs.isEmpty()) {
+            const auto song = songs.at(0).toObject();
+            const auto name = song.value("name").toString();
+            if (!name.isEmpty()) emit emitter->subtitleGot(name);
+
+            const auto alias = song.value("alias").toArray();
+            for (const auto &item : alias) {
+                if (item.isString() && !item.toString().isEmpty()) emit emitter->subtitleGot(item.toString());
+            }
+
+            const auto trans_names = song.value("transNames").toArray();
+            for (const auto &item : trans_names) {
+                if (item.isString() && !item.toString().isEmpty()) emit emitter->subtitleGot(item.toString());
+            }
+        }
+
+        return value;
     } else if (key == "spotifyId") {
         const QRegularExpression primary(R"(^[0-9a-zA-Z]+$)");
         const auto legal = primary.match(value);
@@ -400,74 +410,92 @@ QString IDModel::analyseId(const QString &key, QString value, bool *ok) {
             }
         }
 
+        QNetworkAccessManager manager;
 
-        QSettings config{"settings.ini", QSettings::IniFormat};
-        if (config.contains("qqMusicCookie")) {
-            QNetworkAccessManager manager;
-            auto request = QNetworkRequest(QUrl(QString(R"(https://y.qq.com/n/ryqq_v2/songDetail/)") + value));
+        QJsonObject comm_obj;
+        comm_obj["ct"] = "26";
+        comm_obj["cv"] = "2010101";
+        comm_obj["v"] = "2010101";
 
-            request.setRawHeader("Accept", "*/*");
-            //                    request.setRawHeader("Accept-Encoding", "gzip, deflate, br");
-            request.setRawHeader("Connection", "keep-alive");
-            request.setRawHeader("Cookie", config.value("qqMusicCookie").toByteArray());
-            request.setRawHeader("User-Agent",
-                                 R"(Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36)");
+        QJsonObject param_obj;
+        param_obj["types"] = QJsonArray{1};
+        param_obj["ctx"] = 0;
+        if (value.startsWith("00"))
+            param_obj["mids"] = QJsonArray{value};
+        else
+            param_obj["ids"] = QJsonArray{value.toInt()};
 
-            QNetworkReply *reply = manager.get(request);
+        QJsonObject req_obj;
+        req_obj["module"] = "music.trackInfo.UniformRuleCtrl";
+        req_obj["method"] = "CgiGetTrackInfo";
+        req_obj["param"] = param_obj;
 
-            // 阻塞等待请求完成
-            QEventLoop loop;
-            QTimer timer;
-            timer.setSingleShot(true);
+        QJsonObject root_obj;
+        root_obj["comm"] = comm_obj;
+        root_obj["req"] = req_obj;
 
-            // 连接信号（完成/超时）
-            connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-            connect(&timer, &QTimer::timeout, [&]() {
-                loop.quit();
-                reply->abort(); // 主动终止请求
-            });
+        QJsonDocument json_doc(root_obj);
+        QByteArray post_data = json_doc.toJson();
 
-            timer.start(10 * 1000);
-            loop.exec();
+        auto request = QNetworkRequest(QUrl(QString(R"(https://u.y.qq.com/cgi-bin/musicu.fcg)")));
 
-            // 判断超时情况
-            bool isTimeout = !timer.isActive();
-            if (isTimeout) {
-                reply->deleteLater();
-                return value;
-            }
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-            // 正常错误处理
-            if (reply->error() != QNetworkReply::NoError) {
-                reply->deleteLater();
-                return value;
-            }
+        QNetworkReply *reply = manager.post(request, post_data);
 
-            // 1. 创建正则：匹配冒号(:)，跟随任意空白(\s*)，然后是undefined，最后是单词边界(\b)
-            // \b 确保不会匹配到 "undefinedVariable" 这样的词
-            QRegularExpression re(R"((:\s*)undefined\b)");
+        // 阻塞等待请求完成
+        QEventLoop loop;
+        QTimer timer;
+        timer.setSingleShot(true);
 
-            // 处理内容...
-            // 2. 替换为 null
-            // \1 代表保留捕获组1的内容（即冒号和空格）
-            QString content = QString::fromUtf8(reply->readAll()).replace(re, "\\1null");
+        // 连接信号（完成/超时）
+        connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        connect(&timer, &QTimer::timeout, [&]() {
+            loop.quit();
+            reply->abort(); // 主动终止请求
+        });
+
+        timer.start(10 * 1000);
+        loop.exec();
+
+        // 判断超时情况
+        bool isTimeout = !timer.isActive();
+        if (isTimeout) {
             reply->deleteLater();
+            return value;
+        }
 
-            // if content match /(?<=window.__INITIAL_DATA__ =).*?(?=</script>)/
-            if (content.contains(R"(window.__INITIAL_DATA__ =)")) {
-                //                        qDebug() << content;
-                const auto begin = content.indexOf(R"(window.__INITIAL_DATA__ =)") + 25;
-                const auto end = content.indexOf(R"(</script>)", begin);
-                if (begin != 24 and end != -1 and begin < end) {
-                    const auto data = content.mid(begin, end - begin);
-                    qDebug().noquote() << data;
-                    // to json
-                    const auto json = QJsonDocument::fromJson(data.toUtf8());
-                    if (json.isObject()) {
-                        const auto obj = json.object();
-                        const auto songList = obj["songList"];
-                        if (songList.isArray() and songList.toArray().size() > 0) {
-                            const auto song = songList.toArray()[0].toObject();
+        // 正常错误处理
+        if (reply->error() != QNetworkReply::NoError) {
+            reply->deleteLater();
+            return value;
+        }
+
+        // 1. 创建正则：匹配冒号(:)，跟随任意空白(\s*)，然后是undefined，最后是单词边界(\b)
+        // \b 确保不会匹配到 "undefinedVariable" 这样的词
+        QRegularExpression re(R"((:\s*)undefined\b)");
+
+        // 处理内容...
+        // 2. 替换为 null
+        // \1 代表保留捕获组1的内容（即冒号和空格）
+        QString content = QString::fromUtf8(reply->readAll()).replace(re, "\\1null");
+        reply->deleteLater();
+
+        if (!content.isEmpty()) {
+            qDebug() << content.toUtf8();
+            // to json
+            const auto json = QJsonDocument::fromJson(content.toUtf8());
+            if (json.isObject()) {
+                const auto json_obj = json.object();
+                const auto req_val = json_obj["req"];
+                if (req_val.isObject()) {
+                    const auto req_obj = req_val.toObject();
+                    const auto data_val = req_obj["data"];
+                    if (data_val.isObject()) {
+                        const auto data_obj = data_val.toObject();
+                        const auto tracks_val = data_obj["tracks"];
+                        if (tracks_val.isArray() and tracks_val.toArray().size() > 0) {
+                            const auto song = tracks_val.toArray()[0].toObject();
                             auto mid = song["mid"].toString();
                             if (!mid.isEmpty() and mid != value) {
                                 emit emitter->idGot(IDModel::id_options[1], mid);

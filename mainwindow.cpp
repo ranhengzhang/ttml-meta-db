@@ -102,7 +102,7 @@ MainWindow::MainWindow(QWidget *parent)
     const auto *shortcut = new QShortcut(QKeySequence("Ctrl+S"), this);
     connect(shortcut, &QShortcut::activated, this, &MainWindow::on_actionSave_triggered);
     connect(IDModel::emitter, &IDModel::subtitleGot, this, [this](const QString &name) {
-        _track_meta_model->addData(name);
+        _track_meta_model->addData(name.trimmed());
     });
     connect(IDModel::emitter, &IDModel::idGot, this, [this](const QString &platform, const QString &name) {
         _id_model->addData(platform, name);
@@ -199,7 +199,7 @@ void MainWindow::on_actionSaveAs_triggered() {
 void MainWindow::on_actionCookie_triggered() {
     // 1. 弹出输入对话框[citation:8]
     bool ok;
-    const QString cookie_text = QInputDialog::getText(nullptr, // 父窗口
+    const QString cookie_text = QInputDialog::getText(this, // 父窗口
                                                      tr("输入Cookie"), // 标题
                                                      tr("请输入Cookie值:"), // 标签
                                                      QLineEdit::Normal, // 输入模式
