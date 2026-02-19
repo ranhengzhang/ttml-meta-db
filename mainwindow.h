@@ -4,16 +4,16 @@
 #include <QMainWindow>
 #include <QSettings>
 
-#include "albumartistmodel.h"
-#include "albummodel.h"
-#include "artistmembermodel.h"
-#include "artistmodel.h"
-#include "extramodel.h"
-#include "idmodel.h"
-#include "metamodel.h"
-#include "trackalbummodel.h"
-#include "trackfeatmodel.h"
-#include "trackmodel.h"
+#include "models/albumartistmodel.h"
+#include "models/albummodel.h"
+#include "models/artistmembermodel.h"
+#include "models/artistmodel.h"
+#include "models/extramodel.h"
+#include "models/idmodel.h"
+#include "models/metamodel.h"
+#include "models/trackalbummodel.h"
+#include "models/trackfeatmodel.h"
+#include "models/trackmodel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

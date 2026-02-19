@@ -3,11 +3,11 @@
 //
 
 #include "track.h"
-#include "database.h"
+#include "../database.h"
 
 #include <QJsonArray>
 
-#include "utils.h"
+#include "../../utils.h"
 
 Track::Track() {
     self["albums"] = QJsonArray();
@@ -102,9 +102,12 @@ QMap<QString, QList<QString>> Track::getMetas() const {
  * @param album_uuid 专辑 UUID
  */
 void Track::removeFromAlbum(const QString &album_uuid) {
-    albums.removeAll(album_uuid);
-    if (albums.isEmpty())
-        DataBase::tracks.remove(UUID);
+    if (albums.contains(album_uuid)) {
+        albums.removeAll(album_uuid);
+        auto &album_object = DataBase::albums[album_uuid];
+        album_object.tracks.removeAll(UUID);
+        destroyIfOrphan();
+    }
 }
 
 QJsonObject Track::getSelf() {
@@ -174,4 +177,10 @@ QStringList Track::printMeta() const {
 
 bool Track::isEmpty() {
     return DataEntity::isEmpty() && this->albums.isEmpty() && this->feats.isEmpty() && this->ids.isEmpty();
+}
+
+void Track::destroyIfOrphan() {
+    if (albums.isEmpty() && DataBase::tracks.keys().contains(UUID)) {
+        DataBase::tracks.remove(UUID);
+    }
 }

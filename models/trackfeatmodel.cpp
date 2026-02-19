@@ -6,8 +6,8 @@
 
 #include <QWidget>
 
-#include "artist.h"
-#include "database.h"
+#include "../database/types/artist.h"
+#include "../database/database.h"
 
 TrackFeatModel::TrackFeatModel(QObject *parent) {
     view = dynamic_cast<QWidget *>(parent);
@@ -32,7 +32,7 @@ QVariant TrackFeatModel::data(const QModelIndex &index, int role) const {
 }
 
 bool TrackFeatModel::addData(const QString &uuid) {
-    if (DataBase::artists.contains(uuid)) {
+    if (DataBase::artists.keys().contains(uuid)) {
         if (DataBase::tracks[track_uuid].feats.contains(uuid))
             return false;
         auto &artist = DataBase::artists[uuid];

@@ -6,8 +6,8 @@
 
 #include <QMessageBox>
 
-#include "artist.h"
-#include "database.h"
+#include "../database/types/artist.h"
+#include "../database/database.h"
 
 ArtistModel::ArtistModel(QObject *parent) : QAbstractListModel(parent) {
     _view = dynamic_cast<QWidget *>(parent);
@@ -76,15 +76,10 @@ bool ArtistModel::removeArtist(const int row) {
         return false;
 
     beginRemoveRows(QModelIndex(), row, row);
-    const QString uuid = _artists.at(row);
-    auto artist = DataBase::artists[uuid];
-    DataBase::artists.remove(uuid); // 从 QMap 中删除数据
-
-    // 从所有专辑中移除歌手
-    for (auto &album_uuid: artist.albums) {
-        DataBase::albums[album_uuid].removeFromArtist(uuid);
-    }
-    _artists.removeAt(row);
+    const QString artist_uuid = _artists.at(row);
+    _artists.remove(row);
+    auto &artist = DataBase::artists[artist_uuid];
+    artist.remove();
     endRemoveRows();
     return true;
 }

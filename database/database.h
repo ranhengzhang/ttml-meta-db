@@ -7,9 +7,9 @@
 
 #include <QMap>
 
-#include "artist.h"
-#include "album.h"
-#include "track.h"
+#include "types/artist.h"
+#include "types/album.h"
+#include "types/track.h"
 
 class DataBase {
 public:

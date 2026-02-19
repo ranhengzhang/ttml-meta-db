@@ -6,7 +6,7 @@
 
 #include <QWidget>
 
-#include "database.h"
+#include "../database/database.h"
 
 AlbumArtistModel::AlbumArtistModel(QObject *parent) {
     view = dynamic_cast<QWidget *>(parent);
@@ -36,7 +36,7 @@ QVariant AlbumArtistModel::data(const QModelIndex &index, const int role) const 
  * @return 添加成功/失败
  */
 bool AlbumArtistModel::addData(const QString& artist_uuid) {
-    if (DataBase::artists.contains(artist_uuid)) { // 检查是否存在歌手
+    if (DataBase::artists.keys().contains(artist_uuid)) { // 检查是否存在歌手
         auto &artist = DataBase::artists[artist_uuid];
         if (artist.albums.contains(album_uuid)) { // 检查是否已经添加过
             return false;

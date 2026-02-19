@@ -6,9 +6,9 @@
 
 #include <QWidget>
 
-#include "database.h"
+#include "../database/database.h"
 
-#include "artist.h"
+#include "../database/types/artist.h"
 
 AlbumModel::AlbumModel(QObject *parent) : QAbstractListModel(parent) {
     _view = dynamic_cast<QWidget *>(parent);
@@ -24,7 +24,7 @@ QVariant AlbumModel::data(const QModelIndex &index, int role) const {
         return {};
 
     const QString uuid = _albums.at(index.row());
-    if (!DataBase::albums.contains(uuid)) {
+    if (!DataBase::albums.keys().contains(uuid)) {
         return {};
     }
     const Album &album = DataBase::albums[uuid];
@@ -83,7 +83,7 @@ bool AlbumModel::addNewData(const QString &name) {
  * @return 添加成功/失败
  */
 bool AlbumModel::addOldData(const QString &album_uuid) {
-    if (DataBase::albums.contains(album_uuid)) {
+    if (DataBase::albums.keys().contains(album_uuid)) {
         auto &artist = DataBase::artists[_artist_uuid];
         if (artist.albums.contains(album_uuid)) {
             return false;
@@ -111,10 +111,9 @@ bool AlbumModel::removeAlbumFromArtist(const int row) {
 
     beginRemoveRows(QModelIndex(), row, row);
     // 从当前歌手中移除专辑
-    auto &artist = DataBase::artists[_artist_uuid];
     const QString album_uuid = _albums.at(row);
+    _albums.removeAt(row);
     auto &album = DataBase::albums[album_uuid];
-    artist.albums.removeAll(album_uuid);
     album.removeFromArtist(_artist_uuid);
     endRemoveRows();
 
@@ -133,7 +132,7 @@ void AlbumModel::setArtist(const QString &artist_uuid) {
     auto &artist = DataBase::artists[artist_uuid];
     for (auto &album_uuid: artist.albums) {
         // 去除不存在的专辑
-        if (!DataBase::albums.contains(album_uuid)) {
+        if (!DataBase::albums.keys().contains(album_uuid)) {
             artist.albums.removeAll(album_uuid);
         }
     }
@@ -147,7 +146,7 @@ void AlbumModel::setArtist(const QString &artist_uuid) {
 void AlbumModel::refreshAll() {
     beginResetModel(); // 通知视图数据即将全部重置
 
-    _albums = DataBase::artists.contains(_artist_uuid) ? DataBase::artists[_artist_uuid].albums : QList<QString>{};
+    _albums = DataBase::artists.keys().contains(_artist_uuid) ? DataBase::artists[_artist_uuid].albums : QList<QString>{};
 
     std::sort(_albums.begin(), _albums.end(), [](const QString &keyA, const QString &keyB) {
         return DataBase::albums[keyA].getName() < DataBase::albums[keyB].getName();

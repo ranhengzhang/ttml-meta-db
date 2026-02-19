@@ -4,7 +4,7 @@
 
 #include "album.h"
 #include "artist.h"
-#include "database.h"
+#include "../database.h"
 
 #include <QJsonArray>
 
@@ -71,18 +71,11 @@ QMap<QString, QList<QString>> Album::getMetas() const {
  * @param artist_uuid 歌手 UUID
  */
 void Album::removeFromArtist(const QString &artist_uuid) {
-    artists.removeAll(artist_uuid);
-
-    // 销毁没有歌手的专辑
-    if (artists.isEmpty()) {
-        // 从歌曲中清除专辑
-        for (auto &track_uuid: tracks) {
-            auto &track = DataBase::tracks[track_uuid];
-            track.removeFromAlbum(UUID);
-        }
-
-        // 销毁
-        DataBase::albums.remove(UUID);
+    if (artists.contains(artist_uuid)) {
+        artists.removeAll(artist_uuid);
+        auto &artist_object = DataBase::artists[artist_uuid];
+        artist_object.albums.removeAll(UUID);
+        destroyIfOrphan();
     }
 }
 
@@ -95,4 +88,16 @@ QJsonObject Album::getSelf() {
 
 bool Album::isEmpty() {
     return DataEntity::isEmpty() && this->artists.isEmpty() && this->tracks.isEmpty();
+}
+
+void Album::destroyIfOrphan() {
+    if (artists.isEmpty() && DataBase::albums.keys().contains(UUID)) {
+        for (auto &track: tracks) {
+            if (DataBase::tracks.keys().contains(track)) {
+                auto &track_object = DataBase::tracks[track];
+                track_object.removeFromAlbum(UUID);
+            }
+        }
+        DataBase::albums.remove(UUID);
+    }
 }

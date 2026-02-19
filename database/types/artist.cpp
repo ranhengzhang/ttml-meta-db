@@ -7,7 +7,7 @@
 #include <QJsonArray>
 
 #include "album.h"
-#include "database.h"
+#include "../database.h"
 
 Artist::Artist() {
     self["albums"] = QJsonArray();
@@ -66,11 +66,25 @@ bool Artist::isEmpty() {
     return DataEntity::isEmpty() && this->albums.isEmpty() && this->members.isEmpty();
 }
 
+void Artist::destroyIfOrphan() {
+    if (albums.isEmpty() && DataBase::artists.keys().contains(UUID)) {
+        for (auto &album: albums) {
+            if (DataBase::albums.keys().contains(album)) {
+                auto &album_object = DataBase::albums[album];
+                album_object.removeFromArtist(UUID);
+            }
+        }
+        DataBase::artists.remove(UUID);
+    }
+}
+
 void Artist::remove() {
     // 从所有专辑中删除歌手
     for (auto &album_uuid: albums) {
-        auto &album = DataBase::albums[album_uuid];
-        album.removeFromArtist(UUID);
+        if (DataBase::albums.keys().contains(album_uuid)) {
+            auto &album = DataBase::albums[album_uuid];
+            album.removeFromArtist(UUID);
+        }
     }
 
     // 从所有单曲的 feat 中删除歌手

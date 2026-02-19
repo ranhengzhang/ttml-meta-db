@@ -13,6 +13,7 @@
 class Track final :public DataEntity{
 public:
     Track();
+
     explicit Track(QJsonObject json);
 
     QList<QString> albums; // 专辑列表
@@ -30,6 +31,8 @@ public:
     [[nodiscard]] QStringList printMeta() const;
 
     bool isEmpty() override;
+
+    void destroyIfOrphan() override;
 
 protected:
     [[nodiscard]] QMap<QString, QList<QString>> getMetas() const override; // 导出xml

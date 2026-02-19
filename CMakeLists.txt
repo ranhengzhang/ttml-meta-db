@@ -27,62 +27,68 @@ set(PROJECT_SOURCES
         metadialog.h
         metadialog.ui
 
-        artist.cpp
-        artist.h
+        # database
+        database/types/dataentity.cpp
+        database/types/dataentity.h
 
-        album.cpp
-        album.h
+        database/types/artist.cpp
+        database/types/artist.h
 
-        track.cpp
-        track.h
+        database/types/album.cpp
+        database/types/album.h
 
-        dataentity.cpp
-        dataentity.h
+        database/types/track.cpp
+        database/types/track.h
 
-        database.cpp
-        database.h
+        database/database.cpp
+        database/database.h
 
-        artistmodel.cpp
-        artistmodel.h
+        # models
+        models/artistmodel.cpp
+        models/artistmodel.h
 
-        metamodel.cpp
-        metamodel.h
+        models/metamodel.cpp
+        models/metamodel.h
 
-        albummodel.cpp
-        albummodel.h
+        models/albummodel.cpp
+        models/albummodel.h
 
-        trackmodel.cpp
-        trackmodel.h
+        models/trackmodel.cpp
+        models/trackmodel.h
 
-        artistmembermodel.cpp
-        artistmembermodel.h
+        models/artistmembermodel.cpp
+        models/artistmembermodel.h
 
-        albumartistmodel.cpp
-        albumartistmodel.h
+        models/albumartistmodel.cpp
+        models/albumartistmodel.h
 
-        trackalbummodel.cpp
-        trackalbummodel.h
+        models/trackalbummodel.cpp
+        models/trackalbummodel.h
 
-        trackfeatmodel.cpp
-        trackfeatmodel.h
+        models/trackfeatmodel.cpp
+        models/trackfeatmodel.h
 
-        idmodel.cpp
-        idmodel.h
+        models/idmodel.cpp
+        models/idmodel.h
 
+        models/extramodel.cpp
+        models/extramodel.h
+
+        # delegates
         iddelegate.cpp
         iddelegate.h
 
-        extramodel.cpp
-        extramodel.h
+        # wintoast
+        wintoast/wintoast.hpp
 
-        wintoastlib.cpp
-        wintoastlib.h
+        wintoast/wintoastlib.cpp
+        wintoast/wintoastlib.h
 
+        # utils
         utils.h
         utils.cpp
 
-        wintoast.hpp
-
+        # resource
         app_win32.rc
 
         res.qrc

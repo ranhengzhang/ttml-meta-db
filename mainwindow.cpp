@@ -11,20 +11,20 @@
 #include <QShortcut>
 #include <QCloseEvent>
 
-#include "albummodel.h"
-#include "artistmodel.h"
-#include "database.h"
-#include "metamodel.h"
-#include "albumartistmodel.h"
+#include "models/albummodel.h"
+#include "models/artistmodel.h"
+#include "database/database.h"
+#include "models/metamodel.h"
+#include "models/albumartistmodel.h"
 #include "iddelegate.h"
 #include "iddialog.h"
-#include "idmodel.h"
+#include "models/idmodel.h"
 #include "metadialog.h"
-#include "trackalbummodel.h"
-#include "trackfeatmodel.h"
-#include "trackmodel.h"
-#include "wintoast.hpp"
-#include "wintoastlib.h"
+#include "models/trackalbummodel.h"
+#include "models/trackfeatmodel.h"
+#include "models/trackmodel.h"
+#include "wintoast/wintoast.hpp"
+#include "wintoast/wintoastlib.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

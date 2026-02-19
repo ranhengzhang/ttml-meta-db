@@ -7,7 +7,7 @@
 
 #include <QAbstractListModel>
 
-#include "dataentity.h"
+#include "../database/types/dataentity.h"
 
 class MetaModel final : public QAbstractListModel{
 Q_OBJECT

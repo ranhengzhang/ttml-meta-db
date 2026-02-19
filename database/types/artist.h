@@ -28,6 +28,8 @@ public:
 
     bool isEmpty() override;
 
+    void destroyIfOrphan() override;
+
 protected:
     [[nodiscard]] QMap<QString, QList<QString>> getMetas() const override;
 };

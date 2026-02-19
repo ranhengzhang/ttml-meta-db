@@ -6,22 +6,22 @@
 
 #include <QWidget>
 
-#include "database.h"
+#include "../database/database.h"
 
 TrackModel::TrackModel(QObject *parent) : QAbstractListModel(parent) {
-    window = dynamic_cast<QWidget *>(parent);
+    _window = dynamic_cast<QWidget *>(parent);
 }
 
 int TrackModel::rowCount(const QModelIndex &parent) const {
     Q_UNUSED(parent);
-    return tracks.size();
+    return _tracks.size();
 }
 
 QVariant TrackModel::data(const QModelIndex &index, int role) const {
-    if (!index.isValid() || index.row() >= tracks.size())
+    if (!index.isValid() || index.row() >= _tracks.size())
         return {};
 
-    const QString uuid = tracks.at(index.row());
+    const QString uuid = _tracks.at(index.row());
     const Track &track = DataBase::tracks[uuid];
 
     if (role == Qt::DisplayRole)
@@ -35,18 +35,18 @@ QVariant TrackModel::data(const QModelIndex &index, int role) const {
  * @param uuid 专辑 UUID
  */
 void TrackModel::setAlbum(const QString &uuid) {
-    album_uuid = uuid;
+    _album_uuid = uuid;
     const auto &album = DataBase::albums[uuid];
 
     // 将单曲的专辑添加到显示中
-    tracks = album.tracks;
+    _tracks = album.tracks;
 
     refreshAll();
 }
 
 bool TrackModel::addNewData(const QString &name) {
     // 获取当前专辑
-    auto &album = DataBase::albums[album_uuid];
+    auto &album = DataBase::albums[_album_uuid];
 
     // 检查专辑下同名单曲
     bool exist = false;
@@ -57,29 +57,29 @@ bool TrackModel::addNewData(const QString &name) {
         return false; // 名称已存在，插入失败
     }
 
-    beginInsertRows(QModelIndex(), tracks.size(), tracks.size());
+    beginInsertRows(QModelIndex(), _tracks.size(), _tracks.size());
     Track val;
 
     val.metas.append(name);
-    val.albums.append(album_uuid);
+    val.albums.append(_album_uuid);
     DataBase::tracks.insert(val.getUUID(), val);
     album.tracks.append(val.getUUID());
-    tracks.append(val.getUUID());
+    _tracks.append(val.getUUID());
     endInsertRows();
     return true; // 插入成功
 }
 
 bool TrackModel::addOldData(const QString &uuid) {
-    if (DataBase::tracks.contains(uuid)) {
-        auto &album = DataBase::albums[album_uuid];
+    if (DataBase::tracks.keys().contains(uuid)) {
+        auto &album = DataBase::albums[_album_uuid];
         auto &track = DataBase::tracks[uuid];
         if (album.tracks.contains(uuid)) {
             return false;
         }
-        beginInsertRows(QModelIndex(), tracks.size(), tracks.size());
+        beginInsertRows(QModelIndex(), _tracks.size(), _tracks.size());
         album.tracks.append(uuid);
-        track.albums.append(album_uuid);
-        tracks.append(uuid);
+        track.albums.append(_album_uuid);
+        _tracks.append(uuid);
         endInsertRows();
         return true;
     }
@@ -87,19 +87,19 @@ bool TrackModel::addOldData(const QString &uuid) {
 }
 
 bool TrackModel::moveTrackUp(const int row) {
-    if (row < 1 || row >= tracks.size())
+    if (row < 1 || row >= _tracks.size())
         return false;
     beginMoveRows(QModelIndex(), row, row, QModelIndex(), row - 1);
-    std::swap(tracks[row], tracks[row - 1]);
+    std::swap(_tracks[row], _tracks[row - 1]);
     endMoveRows();
     return true;
 }
 
 bool TrackModel::moveTrackDown(const int row) {
-    if (row < 0 || row >= tracks.size() - 1)
+    if (row < 0 || row >= _tracks.size() - 1)
         return false;
     beginMoveRows(QModelIndex(), row, row, QModelIndex(), row + 2);
-    std::swap(tracks[row], tracks[row + 1]);
+    std::swap(_tracks[row], _tracks[row + 1]);
     endMoveRows();
     return true;
 }
@@ -110,15 +110,16 @@ bool TrackModel::moveTrackDown(const int row) {
  * @return 删除成功/失败
  */
 bool TrackModel::removeTrackFromAlbum(const int row) {
-    if (row < 0 || row >= tracks.size())
+    if (row < 0 || row >= _tracks.size())
         return false;
 
     beginRemoveRows(QModelIndex(), row, row);
 
     // 从当前专辑中移除单曲
-    const QString track_uuid = tracks.at(row);
+    const QString track_uuid = _tracks.at(row);
+    _tracks.removeAt(row);
     auto &track = DataBase::tracks[track_uuid];
-    track.removeFromAlbum(album_uuid);
+    track.removeFromAlbum(_album_uuid);
     endRemoveRows();
 
     return true;
@@ -130,27 +131,27 @@ bool TrackModel::removeTrackFromAlbum(const int row) {
  * @return 单曲的 UUID
  */
 QString TrackModel::getTrackByRow(const int row) const {
-    Q_ASSERT(row >= 0 && row < tracks.size());
-    return tracks.at(row);
+    Q_ASSERT(row >= 0 && row < _tracks.size());
+    return _tracks.at(row);
 }
 
 void TrackModel::clean() {
     beginResetModel();
-    album_uuid = {};
-    tracks = {};
+    _album_uuid = {};
+    _tracks = {};
     endResetModel();
 }
 
 bool TrackModel::isActive() const {
-    return !album_uuid.isEmpty();
+    return !_album_uuid.isEmpty();
 }
 
 void TrackModel::refreshAll() {
     beginResetModel(); // 通知视图数据即将全部重置
-    tracks = DataBase::albums.contains(album_uuid) ? DataBase::albums[album_uuid].tracks : QList<QString>{};
+    _tracks = DataBase::albums.keys().contains(_album_uuid) ? DataBase::albums[_album_uuid].tracks : QList<QString>{};
     endResetModel(); // 通知视图数据重置完成
 }
 
 QString TrackModel::getAlbum() {
-    return album_uuid;
+    return _album_uuid;
 }

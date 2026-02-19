@@ -7,7 +7,7 @@
 
 #include <QAbstractListModel>
 
-#include "dataentity.h"
+#include "../database/types/dataentity.h"
 
 class AlbumArtistModel final : public QAbstractListModel {
 Q_OBJECT

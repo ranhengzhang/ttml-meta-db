@@ -1,5 +1,8 @@
 /.idea/
-/cmake-build-release/
+/cmake-build-**/
 
 CMakeLists.txt.user
 /CHANGELOG.md
+
+/settings.ini
+**/**.metadb

@@ -39,11 +39,11 @@ public:
     [[nodiscard]]QString getAlbum();
 
 private:
-    QString album_uuid;
+    QString _album_uuid;
 
-    QList<QString> tracks{};
+    QList<QString> _tracks{};
 
-    QWidget *window;
+    QWidget *_window;
 };
 
 

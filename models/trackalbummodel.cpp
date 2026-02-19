@@ -6,7 +6,7 @@
 
 #include <QWidget>
 
-#include "database.h"
+#include "../database/database.h"
 
 TrackAlbumModel::TrackAlbumModel(QObject *parent) {
     view = dynamic_cast<QWidget *>(parent);
@@ -31,7 +31,7 @@ QVariant TrackAlbumModel::data(const QModelIndex &index, int role) const {
 }
 
 bool TrackAlbumModel::addData(const QString &uuid) {
-    if (DataBase::albums.contains(uuid)) {
+    if (DataBase::albums.keys().contains(uuid)) {
         auto &album = DataBase::albums[uuid];
         if (album.tracks.contains(track_uuid)) {
             return false;

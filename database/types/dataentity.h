@@ -17,6 +17,8 @@ public:
 
     virtual ~DataEntity() = default;
 
+    virtual void destroyIfOrphan() = 0;
+
     [[nodiscard]] QString getUUID() const;
 
     [[nodiscard]] virtual QJsonObject getSelf() = 0;
